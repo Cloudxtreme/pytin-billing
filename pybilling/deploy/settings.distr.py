@@ -22,12 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%ik8b0za12w-%(uxt4m#mgfx0ggo9eynfnn13vzqq)=_+m617t'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '.justhost.ru'
+]
 
 
 # Application definition
@@ -118,14 +120,13 @@ WSGI_APPLICATION = 'pybilling.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': 'localhost',
-        'NAME': 'pybilling',
-        'USER': 'root',
-        'PASSWORD': 'Keynbr777'
+        'HOST': '',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': ''
     }
 }
 
