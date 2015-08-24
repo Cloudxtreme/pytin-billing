@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -116,16 +117,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pybilling.wsgi.application'
 
 
-# Database
+# Database with the localhost development config
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'HOST': 'localhost',
         'NAME': 'pybilling',
         'USER': 'root',
-        'PASSWORD': 'Keynbr777'
+        'PASSWORD': ''
     }
 }
 

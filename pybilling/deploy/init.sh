@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 #-------------------------------
+# Create user named ${APPNAME} before running this script.
+#
 # Usage:
 #   bash <(curl https://raw.githubusercontent.com/servancho/pytin/master/pybilling/deploy/init.sh)
 #-------------------------------
@@ -12,8 +14,6 @@ echo "Prepare the sources in ${SOURCES}"
 rm -rf ${SOURCES}
 git clone https://github.com/servancho/pytin-billing.git ${SOURCES}
 
-
-# here must be loop on all registered apps
 
 echo "*** Deploying targets ***"
 USERNAME=${APPNAME}
