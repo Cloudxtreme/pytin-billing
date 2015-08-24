@@ -125,7 +125,7 @@ DATABASES = {
         'HOST': 'localhost',
         'NAME': 'pybilling',
         'USER': 'root',
-        'PASSWORD': ''
+        'PASSWORD': 'Keynbr777'
     }
 }
 
