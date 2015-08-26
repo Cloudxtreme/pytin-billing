@@ -26,3 +26,4 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
+        read_only_fields = ('balance', 'bonus_balance', 'created_at', 'last_login_at')

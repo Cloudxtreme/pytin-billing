@@ -142,8 +142,8 @@ class AccountsAPITests(APITestCase):
 
         self.assertEqual(1, response.data['id'])
         self.assertEqual('Dmitry Shilyaev', response.data['name'])
-        self.assertEqual(100, response.data['balance'])
-        self.assertEqual(200, response.data['bonus_balance'])
+        self.assertEqual(0, response.data['balance'])  # not modified
+        self.assertEqual(0, response.data['bonus_balance'])  # not modified
         self.assertEqual('en', response.data['language'])
 
         # DETAILS
@@ -153,8 +153,8 @@ class AccountsAPITests(APITestCase):
 
         self.assertEqual(1, response.data['id'])
         self.assertEqual('Dmitry Shilyaev', response.data['name'])
-        self.assertEqual(100, response.data['balance'])
-        self.assertEqual(200, response.data['bonus_balance'])
+        self.assertEqual(0, response.data['balance'])
+        self.assertEqual(0, response.data['bonus_balance'])
         self.assertEqual('en', response.data['language'])
 
         # DELETE

@@ -48,5 +48,5 @@ crashlytics.properties
 crashlytics-build.properties
 
 .DS_Store
-/logs/*.log
+*/logs/*.log
 *.pyc
