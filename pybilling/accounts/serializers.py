@@ -22,7 +22,7 @@ class UserContactSerializer(serializers.ModelSerializer):
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
-    contacts = UserContactSerializer(source='usercontact_set', many=True, required=False)
+    contacts = UserContactSerializer(source='usercontact_set', many=True, read_only=True)
 
     class Meta:
         model = UserAccount
