@@ -6,7 +6,7 @@ from django.core.validators import validate_email
 
 from django.test import TestCase
 
-from accounts.models import UserAccount, PersonalDataPerson
+from accounts.models import UserAccount, PersonalDataPerson, PersonalData
 
 
 class UserAccountTest(TestCase):
@@ -30,10 +30,10 @@ class UserAccountTest(TestCase):
         self.assertEqual('email', email1.type)
         self.assertEqual('dmitry@shyliaev.com', email1.address)
 
-        email2 = user.update_contact(' main ', '  email', '  dmitry@shyliaev.com ', validator=validate_email)
-        self.assertEqual('main', email2.name)
+        email2 = user.update_contact(' home ', '  email', '  dmitry@shyliaev1.com ', validator=validate_email)
+        self.assertEqual('home', email2.name)
         self.assertEqual('email', email2.type)
-        self.assertEqual('dmitry@shyliaev.com', email2.address)
+        self.assertEqual('dmitry@shyliaev1.com', email2.address)
 
         try:
             user.update_contact('main', 'email', 'dmitryshyliaev.com', validator=validate_email)
@@ -53,6 +53,8 @@ class UserAccountTest(TestCase):
                                                email='lkdfds@ldkjfs.com'
                                                )
 
+        self.assertEqual(1, pers_data1.pk)
+        self.assertEqual('Дмитрий Шиляев', pers_data1.fio)
         self.assertEqual('Dmitrij Shilyaev', pers_data1.fio_lat)
 
         # access to common_data from extended data
@@ -72,15 +74,16 @@ class UserAccountTest(TestCase):
                                                    passport='8734 238764234 239874',
                                                    email='lkdfdsldkjfs.com'
                                                    )
+            self.fail("Waiting for ValidationError")
         except ValidationError, ex:
             self.assertEqual(2, len(ex.error_dict))
             self.assertTrue('email' in ex.error_dict)
             self.assertTrue('phone' in ex.error_dict)
 
 
-        # adding extra data
+        # update extra data
         pers_data3 = user.update_personal_data(PersonalDataPerson,
-                                               fio="Збигнев Бжезински",
+                                               fio="Zbignev Bj Жезинский",
                                                birth='1983-09-05',
                                                postal_index=610001, postal_address='Address Postal',
                                                phone='+7 495 6680903',
@@ -88,5 +91,24 @@ class UserAccountTest(TestCase):
                                                email='lkdfds@ldkjfs.com'
                                                )
 
-        pers_data_list = PersonalDataPerson.objects.filter(common_data__account=user)
+        self.assertEqual(pers_data1.pk, pers_data3.pk)
+        self.assertEqual('Zbignev Bj Жезинский', pers_data3.fio)
+        self.assertEqual('Dmitrij Shilyaev', pers_data3.fio_lat)
+
+        # SEARCHING. Two types of search.
+
+        # get list of extended personal data
+        pers_data_list = PersonalDataPerson.objects.filter(common_data__account=user, phone='+7 495 6680903')
         self.assertEqual(1, len(pers_data_list))
+
+        # search for personal data by extended fields
+        try:
+            PersonalData.objects.filter(fio="some fio")
+            self.fail("Waiting for ValidationError")
+        except ValidationError, ex:
+            self.assertEqual(1, len(ex.error_dict))
+            self.assertTrue('type' in ex.error_dict)
+
+        personal_data_objects = PersonalData.objects.filter(phone='+7 495 6680903',
+                                                            type=PersonalDataPerson.__name__)
+        self.assertEqual(1, len(personal_data_objects))

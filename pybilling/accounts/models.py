@@ -3,10 +3,13 @@ from __future__ import unicode_literals
 import re
 
 import pytils
+from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from django.core.validators import validate_email, RegexValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 
 # Custom model fields validators
 validate_phone = RegexValidator(
@@ -16,14 +19,102 @@ validate_phone = RegexValidator(
 )
 
 
-def populate_fields(obj, **kwargs):
-    assert obj
+def get_supported_fields(klass, **kwargs):
+    """
+    Fill the obj fields based on kwargs.
 
+    :param klass: Object class to check for fields.
+    :param kwargs: key=value parameters.
+    :return: Filled object.
+    """
+    assert klass
+
+    supported_fields = {}
     for field_name in kwargs:
-        if hasattr(obj, field_name):
-            setattr(obj, field_name, kwargs[field_name])
+        if ModelFieldChecker.is_model_field(klass, field_name):
+            supported_fields[field_name] = kwargs[field_name]
 
-    return obj
+    return supported_fields
+
+
+class ModelFieldChecker:
+    """
+    Utility class to query Django model fields.
+    """
+    builtin = ['pk']
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def is_field_or_property(object, name):
+        """
+        Check if field name belongs to model fields or properties
+        """
+        assert name is not None, "Parameter 'name' must be defined."
+        assert issubclass(object.__class__, models.Model), "Class 'class_type' must be the subclass of models.Model."
+
+        return ModelFieldChecker.is_model_field(object.__class__, name) or hasattr(object, name)
+
+    @staticmethod
+    def is_model_field(class_type, name):
+        """
+        Check if field name belongs to model fields
+        """
+        assert name is not None, "Parameter 'name' must be defined."
+        assert issubclass(class_type, models.Model), "Class 'class_type' must be the subclass of models.Model."
+
+        if name in ModelFieldChecker.builtin:
+            return True
+
+        try:
+            return name in [f.name for f in class_type._meta.fields]
+        except models.FieldDoesNotExist:
+            return False
+
+    @staticmethod
+    def get_field_value(resource, field_name, default=''):
+        if ModelFieldChecker.is_model_field(resource.__class__, field_name):
+            return getattr(resource, field_name, default)
+        else:
+            return resource.get_option_value(field_name, default=default)
+
+
+class ManagedQuerySet(QuerySet):
+    def filter(self, *args, **kwargs):
+        """
+        search_fields keys can be specified with lookups:
+        https://docs.djangoproject.com/en/1.7/ref/models/querysets/#field-lookups
+        """
+        search_fields = kwargs
+
+        query = {}
+
+        for field_name_with_lookup in search_fields.keys():
+            field_name = field_name_with_lookup.split('__')[0]
+
+            if ModelFieldChecker.is_model_field(PersonalData, field_name):
+                query[field_name_with_lookup] = search_fields[field_name_with_lookup]
+            else:
+                if 'type' not in search_fields:
+                    raise ValidationError(
+                        {'type': _("Field 'type' must be defined to be able to search by extended data.")})
+
+                lookup_table_name = search_fields['type'].lower()
+                lookup_field = "%s__%s" % (lookup_table_name, field_name_with_lookup)
+
+                query[lookup_field] = search_fields[field_name_with_lookup]
+
+        return super(ManagedQuerySet, self).filter(*args, **query).distinct()
+
+
+class PersonalDataObjectManager(models.Manager):
+    """
+    Query manager with support for query by options.
+    """
+
+    def get_queryset(self):
+        return ManagedQuerySet(self.model)
 
 
 class UserAccount(models.Model):
@@ -70,7 +161,7 @@ class UserAccount(models.Model):
         if validator:
             validator(address)
 
-        user_contact, created = UserContact.objects.get_or_create(
+        user_contact, created = UserContact.objects.update_or_create(
             account=self,
             address=address,
             defaults=dict(
@@ -93,6 +184,12 @@ class UserAccount(models.Model):
         """
         assert klass
 
+        if 'account' in kwargs:
+            del kwargs['account']
+
+        if 'data_class' in kwargs:
+            del kwargs['data_class']
+
         return PersonalData.update_personal_data(self, klass, **kwargs)
 
 
@@ -114,41 +211,58 @@ class PersonalData(models.Model):
     Model to control User personal info, such as forms for domain registration
     and company requisites.
     """
-    account = models.ForeignKey(UserAccount)
+    objects = PersonalDataObjectManager()
+
+    account = models.OneToOneField(UserAccount, primary_key=True)
 
     type = models.CharField(max_length=55, db_index=True, null=False)
     default = models.BooleanField(null=False, db_index=True, default=False)
     verified = models.BooleanField(null=False, db_index=True, default=False)
 
+    def get_details(self):
+        """
+        Getting extended personal data info.
+
+        :return: Personal data object based on 'type' field.
+        """
+        attribute_name = self.type.lower()
+        if hasattr(self, attribute_name):
+            return getattr(self, attribute_name)
+
+        return None
+
     @staticmethod
-    def update_personal_data(account, data_klass, **kwargs):
+    def update_personal_data(account, data_class, **kwargs):
         """
         Create personal data based on data_klass extension classes. There are number of predefined classes,
         but you can safely add custom private data classes with OneToOneField to PersonalData.
         There is only ONE personal data of type klass is allowed per user.
-        :param data_klass:
+        :param data_class:
         :param kwargs:
         :return:
         """
         assert account
-        assert data_klass
+        assert data_class
 
-        common_data, created = PersonalData.objects.get_or_create(
-            type=data_klass.__name__,
+        common_data, created = PersonalData.objects.update_or_create(
+            type=data_class.__name__,
             account=account,
+            defaults=get_supported_fields(PersonalData, **kwargs)
         )
-
-        common_data = populate_fields(common_data, **kwargs)
 
         common_data.full_clean()
         common_data.save()
 
-        personal_data, created = data_klass.objects.get_or_create(
+        personal_data, created = data_class.objects.update_or_create(
             common_data=common_data,
-            defaults=kwargs
+            defaults=get_supported_fields(data_class, **kwargs)
         )
 
-        personal_data.full_clean()
+        try:
+            personal_data.full_clean()
+        except ValidationError:
+            common_data.delete()
+
         personal_data.save()
 
         return personal_data
