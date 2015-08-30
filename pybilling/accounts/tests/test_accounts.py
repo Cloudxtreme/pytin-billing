@@ -3,10 +3,9 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-
 from django.test import TestCase
 
-from accounts.models import UserAccount, PersonalDataPerson, PersonalData
+from accounts.models import UserAccount, PersonalDataPerson, PersonalData, PersonalDataEntrepreneur
 
 
 class UserAccountTest(TestCase):
@@ -41,67 +40,58 @@ class UserAccountTest(TestCase):
             self.assertEqual(1, len(ex.messages))
             self.assertEqual('Enter a valid email address.', ex.messages[0])
 
-    def test_set_personal_data(self):
+    def test_manage_personal_data(self):
         user, created = UserAccount.objects.get_or_create(name='Dmitry')
 
-        pers_data1 = user.update_personal_data(PersonalDataPerson,
-                                               fio="Дмитрий Шиляев",
-                                               birth='1983-09-05',
-                                               postal_index=610001, postal_address='Address Postal',
-                                               phone='+7 495 6680903',
-                                               passport='8734 238764234 239874',
-                                               email='lkdfds@ldkjfs.com'
-                                               )
+        # add personal data of different types: PersonalDataPerson, PersonalDataPerson, PersonalDataEntrepreneur
+        personal_data_1_data = dict(
+            fio="Клиент Имя 1",
+            birth='1983-09-05',
+            postal_index=610001, postal_address='Address Postal 1',
+            phone='+7 495 6680903',
+            passport='8734 238764234 239874',
+            email='lkdfds@ldkjfs.com'
+        )
+        personal_data_1 = user.add_personal_data(PersonalDataPerson, **personal_data_1_data)
 
-        self.assertEqual(1, pers_data1.pk)
-        self.assertEqual('Дмитрий Шиляев', pers_data1.fio)
-        self.assertEqual('Dmitrij Shilyaev', pers_data1.fio_lat)
+        personal_data_2_data = dict(
+            fio="Клиент Имя 2",
+            birth='1983-09-25',
+            postal_index=610001, postal_address='Address Postal 2',
+            phone='+7 495 66809032',
+            passport='8734 238764234 2398742',
+            email='lkdfds@ldkjfs1.com'
+        )
+        personal_data_2 = user.add_personal_data(PersonalDataPerson, **personal_data_2_data)
 
-        # access to common_data from extended data
-        self.assertEqual('PersonalDataPerson', pers_data1.common_data.type)
-        self.assertEqual(False, pers_data1.common_data.default)
-        self.assertEqual(False, pers_data1.common_data.verified)
+        personal_data_3_data = dict(
+            fio="Клиент Имя 3",
+            inn_code=398472897492874,
+            birth='1983-09-03',
+            postal_index=610003, postal_address='Address Postal 3',
+            phone='+7 495 6680903',
+            passport='8734 238764234 239874',
+            email='lkdfds@ldkjfs3.com',
+        )
+        personal_data_3 = user.add_personal_data(PersonalDataEntrepreneur, **personal_data_3_data)
 
-        # access to extended data from common data
-        self.assertEqual('Dmitrij Shilyaev', pers_data1.common_data.personaldataperson.fio_lat)
+        self.assertEqual(3, len(PersonalData.objects.all()))
+        self.assertEqual(2, len(PersonalDataPerson.objects.all()))
+        self.assertEqual(1, len(PersonalDataEntrepreneur.objects.all()))
 
-        try:
-            pers_data2 = user.update_personal_data(PersonalDataPerson,
-                                                   fio="Збигнев Бжезински",
-                                                   birth='1983-09-05',
-                                                   postal_index=610001, postal_address='Address Postal',
-                                                   phone='+7 4951 6680903',
-                                                   passport='8734 238764234 239874',
-                                                   email='lkdfdsldkjfs.com'
-                                                   )
-            self.fail("Waiting for ValidationError")
-        except ValidationError, ex:
-            self.assertEqual(2, len(ex.error_dict))
-            self.assertTrue('email' in ex.error_dict)
-            self.assertTrue('phone' in ex.error_dict)
+        # update second personal data PersonalDataPerson
+        personal_data_2.fio = 'Клиент Имя 2 ed'
+        personal_data_2.save()
 
-
-        # update extra data
-        pers_data3 = user.update_personal_data(PersonalDataPerson,
-                                               fio="Zbignev Bj Жезинский",
-                                               birth='1983-09-05',
-                                               postal_index=610001, postal_address='Address Postal',
-                                               phone='+7 495 6680903',
-                                               passport='8734 238764234 239874',
-                                               email='lkdfds@ldkjfs.com'
-                                               )
-
-        self.assertEqual(pers_data1.pk, pers_data3.pk)
-        self.assertEqual('Zbignev Bj Жезинский', pers_data3.fio)
-        self.assertEqual('Dmitrij Shilyaev', pers_data3.fio_lat)
+        personal_data_2.refresh_from_db()
+        self.assertEqual('Клиент Имя 2 ed', personal_data_2.fio)
 
         # SEARCHING. Two types of search.
-
         # get list of extended personal data
         pers_data_list = PersonalDataPerson.objects.filter(common_data__account=user, phone='+7 495 6680903')
         self.assertEqual(1, len(pers_data_list))
 
-        # search for personal data by extended fields
+        # search for personal data by extended fields, but you MUST specify 'type' property.
         try:
             PersonalData.objects.filter(fio="some fio")
             self.fail("Waiting for ValidationError")
@@ -112,3 +102,32 @@ class UserAccountTest(TestCase):
         personal_data_objects = PersonalData.objects.filter(phone='+7 495 6680903',
                                                             type=PersonalDataPerson.__name__)
         self.assertEqual(1, len(personal_data_objects))
+
+        # Delete first PersonalDataPerson. To delete all models, need to delete via common_data.
+        # To delete only related extra data, run just personal_data_1.delete()
+        personal_data_1.common_data.delete()
+
+        self.assertEqual(2, len(PersonalData.objects.all()))
+        self.assertEqual(1, len(PersonalDataPerson.objects.all()))
+        self.assertEqual(1, len(PersonalDataEntrepreneur.objects.all()))
+
+    def test_validate_personal_data(self):
+        user, created = UserAccount.objects.get_or_create(name='Dmitry')
+
+        personal_data_3_data = dict(
+            fio="Клиент Имя 3",
+            birth='1983-09-03',
+            postal_index=610003, postal_address='Address Postal 3',
+            phone='+7 4951 6680903',
+            passport='8734 238764234 239874',
+            email='lkdfdsldkjfs3.com',
+        )
+
+        try:
+            user.add_personal_data(PersonalDataEntrepreneur, **personal_data_3_data)
+            self.fail("Waiting for ValidationError")
+        except ValidationError, ex:
+            self.assertEqual(3, len(ex.error_dict))
+            self.assertTrue('inn_code' in ex.error_dict)
+            self.assertTrue('email' in ex.error_dict)
+            self.assertTrue('phone' in ex.error_dict)

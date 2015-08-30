@@ -14,26 +14,26 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         account = instance.account
 
         extra_data_class_name = validated_data.get('type')
-
-        if extra_data_class_name != instance.type:
-            old_type_class = apps.get_model('accounts', instance.type)
-            old_type_class.objects.filter(common_data=instance).delete()
-
         extra_data_class = apps.get_model('accounts', extra_data_class_name)
 
-        instance = account.update_personal_data(extra_data_class, **self.initial_data)
+        if extra_data_class_name != instance.type:
+            instance.delete()
+            instance = account.add_personal_data(extra_data_class, **self.initial_data)
+        else:
+            instance.update(**self.initial_data)
+            instance.refresh_from_db()
 
-        return instance.common_data
+        return instance
 
     def create(self, validated_data):
-        account = UserAccount.objects.get(pk=validated_data.get('account'))
+        account = validated_data.get('account')
 
         extra_data_class_name = validated_data.get('type')
         extra_data_class = apps.get_model('accounts', extra_data_class_name)
 
-        instance = account.update_personal_data(extra_data_class, **self.initial_data)
+        instance = account.add_personal_data(extra_data_class, **self.initial_data)
 
-        return instance.common_data
+        return instance
 
     def to_representation(self, instance):
         """
@@ -41,7 +41,7 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         :param instance:
         :return:
         """
-        details = instance.get_details()
+        details = instance.extended
 
         personal_data = {}
         if details:
@@ -82,7 +82,7 @@ class UserContactSerializer(serializers.ModelSerializer):
 
 class UserAccountSerializer(serializers.ModelSerializer):
     contacts = UserContactSerializer(source='usercontact_set', many=True, read_only=True, required=False)
-    personal_data = PersonalDataSerializer(source='personaldata', many=False, read_only=True, required=False)
+    personal_data = PersonalDataSerializer(source='personaldata_set', many=True, read_only=True, required=False)
 
     class Meta:
         model = UserAccount

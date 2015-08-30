@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 
 from rest_framework.test import APITestCase
 
-from accounts.models import UserAccount, PersonalDataPerson, PersonalDataEntrepreneur
+from accounts.models import UserAccount, PersonalDataPerson, PersonalDataEntrepreneur, PersonalData
 
 
 class AccountsAPITests(APITestCase):
     def setUp(self):
+        PersonalData.objects.all().delete()
+
         super(AccountsAPITests, self).setUp()
 
     def test_personal_data_manage(self):
@@ -100,23 +102,24 @@ class AccountsAPITests(APITestCase):
             bonus_balance=50
         )
 
-        user.update_personal_data(PersonalDataPerson,
-                                  fio="Zbignev Bj Жезинский",
-                                  birth='1983-09-05',
-                                  postal_index=610001, postal_address='Address Postal',
-                                  phone='+7 495 6680903',
-                                  passport='8734 238764234 239874',
-                                  email='lkdfds@ldkjfs.com'
-                                  )
+        user.add_personal_data(PersonalDataPerson,
+                               fio="Zbignev Bj Жезинский",
+                               birth='1983-09-05',
+                               postal_index=610001, postal_address='Address Postal',
+                               phone='+7 495 6680903',
+                               passport='8734 238764234 239874',
+                               email='lkdfds@ldkjfs.com'
+                               )
 
         response = self.client.get('/v1/accounts/%s/' % user.id, format='json')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual('610001', response.data['personal_data']['postal_index'])
-        self.assertEqual('Zbignev Bj Zhezinskij', response.data['personal_data']['fio_lat'])
-        self.assertEqual('Zbignev Bj Жезинский', response.data['personal_data']['fio'])
-        self.assertEqual('PersonalDataPerson', response.data['personal_data']['type'])
-        self.assertEqual('+7 495 6680903', response.data['personal_data']['phone'])
+        self.assertEqual(1, len(response.data['personal_data']))
+        self.assertEqual('610001', response.data['personal_data'][0]['postal_index'])
+        self.assertEqual('Zbignev Bj Zhezinskij', response.data['personal_data'][0]['fio_lat'])
+        self.assertEqual('Zbignev Bj Жезинский', response.data['personal_data'][0]['fio'])
+        self.assertEqual('PersonalDataPerson', response.data['personal_data'][0]['type'])
+        self.assertEqual('+7 495 6680903', response.data['personal_data'][0]['phone'])
 
     def test_account_with_contacts_crud(self):
         user, created = UserAccount.objects.get_or_create(

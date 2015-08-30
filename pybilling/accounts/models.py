@@ -136,7 +136,8 @@ class UserAccount(models.Model):
 
     def update_contact(self, name, type, address, default=False, verified=False, validator=None):
         """
-        Updates or crates user contact.
+        Updates or crates user contact. If there is a contact with the same address value, it's being
+        updated, created - otherwise.
 
         :param name: Arbitrary name of the contact, such as home or main.
         :param type: Type of the contact. Such as email or skype.
@@ -174,23 +175,41 @@ class UserAccount(models.Model):
 
         return user_contact
 
-    def update_personal_data(self, klass, **kwargs):
+    def add_personal_data(self, data_klass, **kwargs):
         """
-        Updates the personal data of specific klass.
-
-        :param klass: Type of the personal data, such as PersonalDataEntrepreneur
-        :param kwargs: Personal data parameters, based on klass
-        :return: Created personal data object of type klass
+        Add personal data of type 'data_klass' to the account.
+        :returns Object of type PersonalData with related object of 'data_klass' type.
         """
-        assert klass
-
-        if 'account' in kwargs:
-            del kwargs['account']
+        assert data_klass
 
         if 'data_class' in kwargs:
             del kwargs['data_class']
 
-        return PersonalData.update_personal_data(self, klass, **kwargs)
+        kwargs['account'] = self
+        kwargs['type'] = data_klass.__name__
+
+        pdata = get_supported_fields(PersonalData, **kwargs)
+        common_data = PersonalData(
+            **pdata
+        )
+
+        common_data.full_clean()
+        common_data.save()
+
+        personal_data, created = data_klass.objects.update_or_create(
+            common_data=common_data,
+            defaults=get_supported_fields(data_klass, **kwargs)
+        )
+
+        try:
+            personal_data.full_clean()
+            personal_data.save()
+        except ValidationError:
+            raise
+        except Exception:
+            personal_data.delete()
+
+        return personal_data.common_data
 
 
 class UserContact(models.Model):
@@ -213,13 +232,57 @@ class PersonalData(models.Model):
     """
     objects = PersonalDataObjectManager()
 
-    account = models.OneToOneField(UserAccount, primary_key=True)
+    account = models.ForeignKey(UserAccount)
 
     type = models.CharField(max_length=55, db_index=True, null=False)
     default = models.BooleanField(null=False, db_index=True, default=False)
     verified = models.BooleanField(null=False, db_index=True, default=False)
 
-    def get_details(self):
+    def __getattr__(self, attrname):
+        """
+        Override getters to allow access to extended fields via root PersonalData.
+        pd = PersonalData(fields...)
+        pd_ext = PersonalDataPerson(fields..)
+        pd_ext.common_data = pd
+        pd_ext.save()
+
+        # This calls are the same
+        print pd.fio
+        print pd.extended.fio
+
+        print pd.type  # called from pd itself, because it is a model field.
+        """
+        assert attrname
+
+        if not ModelFieldChecker.is_model_field(PersonalData, attrname):
+            return getattr(self.extended, attrname)
+
+        return super(PersonalData, self).__getattr__(attrname)
+
+    def update(self, **kwargs):
+        if 'account' in kwargs:
+            del kwargs['account']
+
+        fields_map = get_supported_fields(PersonalData, **kwargs)
+        for field_name in fields_map:
+            setattr(self, field_name, fields_map[field_name])
+
+        self.full_clean()
+        self.save()
+
+        extra_data = self.extended
+        if extra_data:
+            fields_map = get_supported_fields(extra_data.__class__, **kwargs)
+            for field_name in fields_map:
+                setattr(extra_data, field_name, fields_map[field_name])
+
+            extra_data.full_clean()
+            extra_data.save()
+
+        return self
+
+    @property
+    def extended(self):
         """
         Getting extended personal data info.
 
@@ -230,42 +293,6 @@ class PersonalData(models.Model):
             return getattr(self, attribute_name)
 
         return None
-
-    @staticmethod
-    def update_personal_data(account, data_class, **kwargs):
-        """
-        Create personal data based on data_klass extension classes. There are number of predefined classes,
-        but you can safely add custom private data classes with OneToOneField to PersonalData.
-        There is only ONE personal data of type klass is allowed per user.
-        :param data_class:
-        :param kwargs:
-        :return:
-        """
-        assert account
-        assert data_class
-
-        common_data, created = PersonalData.objects.update_or_create(
-            type=data_class.__name__,
-            account=account,
-            defaults=get_supported_fields(PersonalData, **kwargs)
-        )
-
-        common_data.full_clean()
-        common_data.save()
-
-        personal_data, created = data_class.objects.update_or_create(
-            common_data=common_data,
-            defaults=get_supported_fields(data_class, **kwargs)
-        )
-
-        try:
-            personal_data.full_clean()
-        except ValidationError:
-            common_data.delete()
-
-        personal_data.save()
-
-        return personal_data
 
 
 class PersonalDataPerson(models.Model):
