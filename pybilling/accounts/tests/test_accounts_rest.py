@@ -12,6 +12,37 @@ class AccountsAPITests(APITestCase):
 
         super(AccountsAPITests, self).setUp()
 
+    def test_personal_data_filter(self):
+        user, created = UserAccount.objects.get_or_create(
+            name='User testing',
+            balance=100,
+            bonus_balance=50
+        )
+
+        personal_data_types = [PersonalDataPerson, PersonalDataEntrepreneur]
+
+        for idx in xrange(1, 30):
+            data = dict(
+                fio="Клиент %s" % idx,
+                inn_code=12345600 + idx,
+                birth='1983-09-%s' % idx,
+                postal_index=610000 + idx, postal_address='Address Postal %s' % idx,
+                phone='+7 495 6680800%s' % idx,
+                passport='8734 238764234 %s' % idx,
+                email='lkdfds@ldkjfs%s.com' % idx,
+            )
+            user.add_personal_data(personal_data_types[idx % 2], **data)
+
+        self.assertEqual(29, len(PersonalData.objects.all()))
+
+        # test filters, all
+        response = self.client.get('/v1/pdata/', {}, format='json')
+        self.assertEqual(29, response.data['count'])
+
+        response = self.client.get('/v1/pdata/',
+                                   {'fio__startswith': 'Клиент 2', 'type': PersonalDataPerson.__name__}, format='json')
+        self.assertEqual(6, response.data['count'])
+
     def test_personal_data_manage(self):
         user, created = UserAccount.objects.get_or_create(
             name='User testing',
