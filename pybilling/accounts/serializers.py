@@ -13,7 +13,7 @@ class PersonalDataSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         account = instance.account
 
-        extra_data_class_name = validated_data.get('type')
+        extra_data_class_name = validated_data.get('type', instance.type)
         extra_data_class = apps.get_model('accounts', extra_data_class_name)
 
         if extra_data_class_name != instance.type:
@@ -41,23 +41,19 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         :param instance:
         :return:
         """
+        # fetch extended data fields
         details = instance.extended
-
         personal_data = {}
-        if details:
-            for field in details._meta.fields:
-                if field.is_relation:
-                    continue
-
-                personal_data[field.name] = unicode(getattr(details, field.name))
-
-        for field in instance._meta.fields:
+        for field in details._meta.fields:
             if field.is_relation:
                 continue
 
-            personal_data[field.name] = unicode(getattr(instance, field.name))
+            personal_data[field.name] = unicode(getattr(details, field.name))
 
-        personal_data['id'] = instance.pk
+        # fetch common data fields
+        common_data = super(PersonalDataSerializer, self).to_representation(instance)
+        for field_name in common_data:
+            personal_data[field_name] = common_data[field_name]
 
         return personal_data
 
@@ -87,3 +83,9 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         read_only_fields = ('balance', 'bonus_balance', 'created_at', 'last_login_at', 'personal_data', 'contacts')
+
+    def create(self, validated_data):
+        if 'pk' in self.initial_data:
+            validated_data['id'] = self.initial_data['pk']
+
+        return super(UserAccountSerializer, self).create(validated_data)

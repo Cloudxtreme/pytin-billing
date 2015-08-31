@@ -12,6 +12,16 @@ class AccountsAPITests(APITestCase):
 
         super(AccountsAPITests, self).setUp()
 
+    def test_create_account_defined_id(self):
+        payload = {
+            'name': 'Dmitry',
+            'pk': 150
+        }
+        response = self.client.post('/v1/accounts/', payload, format='json')
+
+        self.assertEqual(201, response.status_code)
+        self.assertEqual(150, response.data['id'])
+
     def test_personal_data_filter(self):
         user, created = UserAccount.objects.get_or_create(
             name='User testing',
@@ -180,9 +190,10 @@ class AccountsAPITests(APITestCase):
             'name': 'work',
             'address': 'bxtgroup@gmail.com',
             'type': 'email',
-            'account': user.id
         }
-        response = self.client.put('/v1/contacts/%s/' % response.data['id'], payload, format='json')
+        response = self.client.patch('/v1/contacts/%s/' % response.data['id'], payload, format='json')
+
+        print response
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, response.data['id'])
@@ -279,7 +290,7 @@ class AccountsAPITests(APITestCase):
             'bonus_balance': 200
         }
 
-        response = self.client.put('/v1/accounts/%s/' % response.data['id'], payload, format='json')
+        response = self.client.patch('/v1/accounts/%s/' % response.data['id'], payload, format='json')
 
         self.assertEqual(200, response.status_code)
 
