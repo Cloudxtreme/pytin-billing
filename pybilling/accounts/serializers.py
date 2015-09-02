@@ -42,13 +42,15 @@ class PersonalDataSerializer(serializers.ModelSerializer):
         :return:
         """
         # fetch extended data fields
-        details = instance.extended
         personal_data = {}
-        for field in details._meta.fields:
-            if field.is_relation:
-                continue
 
-            personal_data[field.name] = unicode(getattr(details, field.name))
+        details = instance.extended
+        if details:
+            for field in details._meta.fields:
+                if field.is_relation:
+                    continue
+
+                personal_data[field.name] = unicode(getattr(details, field.name))
 
         # fetch common data fields
         common_data = super(PersonalDataSerializer, self).to_representation(instance)
@@ -82,7 +84,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAccount
-        read_only_fields = ('balance', 'bonus_balance', 'created_at', 'last_login_at', 'personal_data', 'contacts')
+        read_only_fields = ('balance', 'bonus_balance', 'last_login_at', 'personal_data', 'contacts')
 
     def create(self, validated_data):
         if 'pk' in self.initial_data:

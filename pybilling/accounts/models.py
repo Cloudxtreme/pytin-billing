@@ -196,18 +196,19 @@ class UserAccount(models.Model):
         common_data.full_clean()
         common_data.save()
 
-        personal_data, created = data_klass.objects.update_or_create(
-            common_data=common_data,
-            defaults=get_supported_fields(data_klass, **kwargs)
-        )
-
+        personal_data = None
         try:
+            personal_data, created = data_klass.objects.update_or_create(
+                common_data=common_data,
+                defaults=get_supported_fields(data_klass, **kwargs)
+            )
+
             personal_data.full_clean()
             personal_data.save()
-        except ValidationError:
-            raise
         except Exception:
-            personal_data.delete()
+            if personal_data:
+                personal_data.delete()
+            raise
 
         return personal_data.common_data
 
@@ -309,7 +310,7 @@ class PersonalDataPerson(models.Model):
 
     def clean(self):
         if not self.fio_lat:
-            self.fio_lat = pytils.translit.translify(self.fio)
+            self.fio_lat = pytils.translit.translify(self.fio, strict=False)
 
 
 class PersonalDataEntrepreneur(models.Model):

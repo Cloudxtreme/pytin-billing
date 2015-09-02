@@ -14,4 +14,8 @@ GET, POST, PUT, DELETE
 GET, POST, PUT, DELETE
 /v1/pdata/[<id>/]
 
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u admin -p mysql
+mysql -u root -p -e "flush tables;" mysql
+
 [more info coming soon]
+
