@@ -53,6 +53,37 @@ class AccountsAPITests(APITestCase):
                                    {'fio__startswith': 'Клиент 2', 'type': PersonalDataPerson.__name__}, format='json')
         self.assertEqual(6, response.data['count'])
 
+    def test_personal_data_bug_extra(self):
+        """
+        There was a bug, when there is no extra data, serializer raises exception.
+        """
+        user, created = UserAccount.objects.get_or_create(
+            name='User testing',
+            balance=100,
+            bonus_balance=50
+        )
+
+        personal_data_1_data = dict(
+            fio="Клиент Имя 1",
+            birth='1983-09-05',
+            postal_index=610001, postal_address='Address Postal 1',
+            phone='+7 495 6680903',
+            passport='8734 238764234 239874',
+            email='lkdfds@ldkjfs.com'
+        )
+        personal_data_1 = user.add_personal_data(PersonalDataPerson, **personal_data_1_data)
+
+        # normal account retrieval
+        response = self.client.get('/v1/accounts/%s/' % user.id, format='json')
+        self.assertEqual(13, len(response.data['personal_data'][0].keys()))
+
+        if personal_data_1.extended:
+            personal_data_1.extended.delete()
+
+        # normal account retrieval, with empty personal data
+        response = self.client.get('/v1/accounts/%s/' % user.id, format='json')
+        self.assertEqual(5, len(response.data['personal_data'][0].keys()))
+
     def test_personal_data_manage(self):
         user, created = UserAccount.objects.get_or_create(
             name='User testing',
@@ -192,8 +223,6 @@ class AccountsAPITests(APITestCase):
             'type': 'email',
         }
         response = self.client.patch('/v1/contacts/%s/' % response.data['id'], payload, format='json')
-
-        print response
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, response.data['id'])

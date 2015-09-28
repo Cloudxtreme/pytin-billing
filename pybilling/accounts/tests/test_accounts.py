@@ -40,6 +40,26 @@ class UserAccountTest(TestCase):
             self.assertEqual(1, len(ex.messages))
             self.assertEqual('Enter a valid email address.', ex.messages[0])
 
+    def test_manage_personal_strict_bug(self):
+        """
+        pytils.translit.translify() with strict=True (default) raises error while working. Fixed.
+        """
+
+        user, created = UserAccount.objects.get_or_create(name='Dmitry')
+
+        # normal transliteration
+        personal_data_1_data = dict(
+            fio="Зби́гнев Кази́меж Бжези́нс",
+            birth='1983-09-05',
+            postal_index=610001, postal_address='Address Postal 1',
+            phone='+7 495 6680903',
+            passport='8734 238764234 239874',
+            email='lkdfds@ldkjfs.com'
+        )
+        personal_data_1 = user.add_personal_data(PersonalDataPerson, **personal_data_1_data)
+
+        self.assertEqual('Zbígnev Kazímezh Bzhezíns', personal_data_1.extended.fio_lat)
+
     def test_manage_personal_data(self):
         user, created = UserAccount.objects.get_or_create(name='Dmitry')
 
