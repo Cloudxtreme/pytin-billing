@@ -3,18 +3,18 @@ from __future__ import unicode_literals
 
 
 class Registrar(object):
-    def create_contract(self):
+    def create_contract(self, data):
         pass
 
-    def find_contracts(self):
+    def find_contracts(self, query):
         pass
 
-    def get_balance_info(self):
+    def get_balance(self):
         pass
 
 
 class Contract(object):
-    def __init__(self, registrar, **fields):
+    def __init__(self, registrar, fields):
         assert registrar
 
         self.registrar = registrar

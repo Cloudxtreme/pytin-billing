@@ -74,8 +74,13 @@ class ACTION:
     PICKUP = 'pickup'
 
 
+class CONTRACT_TYPE:
+    PERSON = 'PRS'
+    COMPANY = 'ORG'
+
+
 class ProtocolHeader(object):
-    def __init__(self, **fields):
+    def __init__(self, fields):
         self.fields = fields
 
     def serialize(self):
@@ -87,11 +92,11 @@ class ProtocolHeader(object):
 
         fields = deserialize_fields(text)
 
-        return ProtocolHeader(**fields)
+        return ProtocolHeader(fields)
 
 
-class ProtocolSection(object):
-    def __init__(self, name, **fields):
+class ProtocolDataSection(object):
+    def __init__(self, name, fields):
         assert name
 
         self.name = name
@@ -103,23 +108,63 @@ class ProtocolSection(object):
 
         return serialized
 
+    @property
+    def data(self):
+        return self.fields
+
+    @staticmethod
+    def deserialize(text):
+        assert text
+
+        # parse and cut section name
+        name = 'default'
+        mt = re.match(r'\[(.+)\]', text)
+        if mt:
+            name = mt.group(1)
+            text = text[mt.regs[0][1]:]
+
+        return ProtocolDataSection(name, deserialize_fields(text))
+
+
+class ProtocolErrorSection(ProtocolDataSection):
+    def __init__(self, error_text):
+        assert error_text
+
+        self.name = 'error'
+        self.error_text = error_text
+
+    def serialize(self):
+        serialized = '[error]\n'
+        serialized += self.error_text
+
+        return serialized
+
+    @property
+    def data(self):
+        return self.error_text
+
+    @property
+    def errors(self):
+        return self.error_text.split('\n')
+
     @staticmethod
     def deserialize(text):
         assert text
 
         mt = re.match(r'\[(.+)\]', text)
         if mt:
-            name = mt.group(1)
-            fields = deserialize_fields(text[mt.regs[0][1]:])
-
-            return ProtocolSection(name, **fields)
+            error_text = text[mt.regs[0][1]:].strip()
+            return ProtocolErrorSection(error_text)
 
         raise Exception(_("Malformed response section."))
 
 
 class RucenterResponse(object):
-    def __init__(self, header, *sections):
+    def __init__(self, header, sections=None):
         assert header
+
+        if sections is None:
+            sections = []
 
         self.header = header
         self.sections = sections
@@ -134,25 +179,35 @@ class RucenterResponse(object):
                 self._error = mt.group(2)
 
     @staticmethod
-    def from_text(response_text):
-        assert response_text
+    def from_http(http_response):
+        assert http_response
 
         # split into blocks: header and sections
-        blocks = response_text.split('\n\n')
+        blocks = http_response.text.split('\r\n\r\n')
+        if len(blocks) < 2:
+            blocks.append('')
 
         # parse header
         header = ProtocolHeader.deserialize(blocks[0])
 
-        # parse sections
-        sections = []
-        for section_text_block in blocks[1:]:
-            section_text_block = section_text_block.strip()
-            if section_text_block == '':
-                continue
+        response = RucenterResponse(header)
 
-            sections.append(ProtocolSection.deserialize(section_text_block))
+        if response.state == 402:
+            section_text_block = blocks[1].strip()
+            response.sections.append(ProtocolErrorSection.deserialize(section_text_block))
+        elif response.state >= 400:
+            response.sections.append(ProtocolErrorSection(response.error))
+        else:
+            # parse sections
+            sections_text_blocks = blocks[1].split('\n\n')
+            for section_text_block in sections_text_blocks:
+                section_text_block = section_text_block.strip()
+                if section_text_block == '':
+                    continue
 
-        return RucenterResponse(header, *sections)
+                response.sections.append(ProtocolDataSection.deserialize(section_text_block))
+
+        return response
 
     @property
     def state(self):
@@ -161,6 +216,13 @@ class RucenterResponse(object):
     @property
     def error(self):
         return self._error
+
+    def has_section(self, name):
+        for section in self.sections:
+            if section.name == name:
+                return True
+
+        return False
 
     def get_section(self, name):
         for section in self.sections:
@@ -206,7 +268,7 @@ class RucenterRequest(object):
         request_body = ''
 
         # serialize headers
-        header = ProtocolHeader(**self.headers)
+        header = ProtocolHeader(self.headers)
         request_body += header.serialize()
         request_body += "\n"
 
@@ -217,21 +279,22 @@ class RucenterRequest(object):
 
         # send request
         headers = {
-            "http-equiv": "Content-type",
-            "content": "application/x-www-form-urlencoded",
-            "charset": "utf8"
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Charset": "utf-8"
         }
         data = urlencode({
             'SimpleRequest': request_body
         })
 
-        request = requests.post(url, data, headers=headers)
-        if request.status_code >= 500 or request.status_code == 405:
-            raise Exception(_("HTTP error %s. Service unavailable." % request.status_code))
+        http_response = requests.post(url, data, headers=headers)
+        http_response.encoding = http_response.apparent_encoding
+        if http_response.status_code >= 500 or http_response.status_code == 405:
+            raise Exception(_("HTTP error %s. Service unavailable." % http_response.status_code))
 
-        response = RucenterResponse.from_text(request.text)
+        response = RucenterResponse.from_http(http_response)
         if response.state >= 400:
-            raise Exception(_("Code %s: %s" % (response.state, response.error)))
+            error_section = response.get_section('error')
+            raise Exception(_("API ERROR %s: %s" % (response.state, '; '.join(error_section.errors))))
 
         return response
 
@@ -282,10 +345,30 @@ class RucenterRegistrar(Registrar):
         self.password = password
         self.lang = lang
 
-    def create_contract(self, **kwargs):
-        pass
+    def create_contract(self, data):
+        """
+        Create contract.
 
-    def find_contracts(self, **query):
+        Details https://www.nic.ru/manager/docs/partners/tech.shtml
+
+        :param data: fields and values according to contract that is being created.
+        :return:
+        """
+        request = RucenterRequest(request_type=REQUEST.CONTRACT,
+                                  operation=OPERATION.CREATE,
+                                  login=self.login,
+                                  password=self.password,
+                                  lang=self.lang)
+
+        request.sections.append(ProtocolDataSection('contract', data))
+
+        response = request.send(self.RUCENTER_GATEWAY)
+
+        default_section = response.get_section('default')
+
+        return RucenterContract(self, {'contract-num': default_section.fields['login']})
+
+    def find_contracts(self, query):
         """
         Search for the clients contracts.
         Details: https://www.nic.ru/manager/docs/partners/protocol/requests/contract_search.shtml
@@ -314,7 +397,7 @@ class RucenterRegistrar(Registrar):
                                   password=self.password,
                                   lang=self.lang)
 
-        request.sections.append(ProtocolSection('contract', **query))
+        request.sections.append(ProtocolDataSection('contract', query))
 
         while True:
             response = request.send(self.RUCENTER_GATEWAY)
@@ -325,16 +408,16 @@ class RucenterRegistrar(Registrar):
             item_total = int(paging_data.fields['contracts-found'])
 
             for section in response.sections[1:]:
-                yield RucenterContract(self, **section.fields)
+                yield RucenterContract(self, section.fields)
 
             if (item_first + item_limit) >= item_total:
                 break
 
             # update paging
             query['contracts-first'] = item_first + item_limit + 1
-            request.sections[0] = ProtocolSection('contract', **query)
+            request.sections[0] = ProtocolDataSection('contract', query)
 
-    def get_balance_info(self):
+    def get_balance(self):
         request = RucenterRequest(request_type=REQUEST.ACCOUNT,
                                   operation=OPERATION.GET,
                                   login=self.login,
@@ -345,4 +428,4 @@ class RucenterRegistrar(Registrar):
 
         acc_section = response.get_section('account')
 
-        return acc_section.fields
+        return acc_section.fields['balance']
