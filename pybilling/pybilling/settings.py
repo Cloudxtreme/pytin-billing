@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 """
 DEV
 
@@ -58,6 +60,25 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 )
+
+DOMAIN_REGISTRARS = {
+    'rucenter': {
+        'connector': 'domains.registrars.rucenter.connector.RucenterRegistrar',
+        'auth': {
+            'login': '370/NIC-REG/adm',
+            'password': 'dogovor',
+            'lang': 'ru'
+        },
+        'serializers': {
+            'PersonalDataPerson': 'domains.registrars.rucenter.serializers.RuCenterPersonSerializer',
+            'PersonalDataEntrepreneur': 'domains.registrars.rucenter.serializers.RuCenterEntrepreneurSerializer',
+            'PersonalDataCompany': 'domains.registrars.rucenter.serializers.RuCenterCompanySerializer',
+            'PersonalDataForeignPerson': 'domains.registrars.rucenter.serializers.RuCenterForeignPersonSerializer',
+            'PersonalDataForeignEntrepreneur': 'domains.registrars.rucenter.serializers.RuCenterForeignEntrepreneurSerializer',
+            'PersonalDataForeignCompany': 'domains.registrars.rucenter.serializers.RuCenterForeignCompanySerializer',
+        }
+    }
+}
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,

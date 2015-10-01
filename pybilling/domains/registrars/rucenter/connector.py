@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 import re
 
+import requests
 from django.utils import timezone
 from django.utils.http import urlencode
-import requests
+
 from django.utils.translation import ugettext_lazy as _
 
-from domains.registrars.core import Registrar, Contract
+from domains.registrars.core import Registrar, Contract, Order
 from pybilling.settings import logger
 
 
@@ -20,7 +21,12 @@ def serialize_fields(fields):
     """
     serialized = ''
     for key in fields:
-        serialized += "%s:%s\n" % (key, fields[key])
+        for line in fields[key].split('\n'):
+            line = line.strip()
+            if line == '':
+                continue
+
+            serialized += "%s:%s\n" % (key, line)
 
     return serialized
 
@@ -43,7 +49,12 @@ def deserialize_fields(text):
             raise ValueError(_("Wrong field record '%s'" % record))
 
         (key, value) = key_value
-        fields[key.strip()] = value.strip()
+        key = key.strip()
+
+        if key not in fields:
+            fields[key] = value.strip()
+        else:
+            fields[key] += ('\n' + value.strip())
 
     return fields
 
@@ -299,19 +310,61 @@ class RucenterRequest(object):
         return response
 
 
+class RucenterOrder(Order):
+    pass
+
+
 class RucenterContract(Contract):
     @property
     def number(self):
         return self.fields['contract-num']
 
-    def find_orders(self):
-        super(RucenterContract, self).find_orders()
+    def find_orders(self, query):
+        super(RucenterContract, self).find_orders(query)
 
-    def find_services(self):
-        super(RucenterContract, self).find_services()
+    def find_services(self, query):
+        super(RucenterContract, self).find_services(query)
 
-    def create_order(self):
-        super(RucenterContract, self).create_order()
+    def domain_register(self, *domain_names, **data):
+        assert domain_names
+
+        request = RucenterRequest(request_type=REQUEST.ORDER,
+                                  operation=OPERATION.CREATE,
+                                  login=self.registrar.login,
+                                  password=self.registrar.password,
+                                  lang=self.registrar.lang)
+
+        for domain_name in domain_names:
+            order_item = {
+                'service': 'domain',
+                'action': 'new',
+                'domain': domain_name
+            }
+            order_item.update(data)
+
+            # extra logic based on domain type
+            order_item['template'] = 'client_ru'
+
+            request.sections.append(ProtocolDataSection('order-item', order_item))
+
+        response = request.send(RucenterRegistrar.RUCENTER_GATEWAY)
+
+        order_section = response.get_section('order')
+
+        return RucenterOrder(self, order_id=order_section.fields['order_id'])
+
+    def delete(self):
+        request = RucenterRequest(request_type=REQUEST.CONTRACT,
+                                  operation=OPERATION.DELETE,
+                                  login=self.registrar.login,
+                                  password=self.registrar.password,
+                                  lang=self.registrar.lang)
+
+        request.add_header('subject-contract', self.number)
+
+        request.send(RucenterRegistrar.RUCENTER_GATEWAY)
+
+        return True
 
 
 class RucenterRegistrar(Registrar):

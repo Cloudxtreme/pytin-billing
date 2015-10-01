@@ -81,6 +81,12 @@ class ModelFieldChecker:
 
 
 class ManagedQuerySet(QuerySet):
+    """
+    This query set is able to search in related specific PersonalData object.
+    If field is not PersonalData model field, then the lookup query to related specific
+    personal data object is added.
+    """
+
     def filter(self, *args, **kwargs):
         """
         search_fields keys can be specified with lookups:
@@ -130,9 +136,12 @@ class UserAccount(models.Model):
     name = models.CharField(db_index=True, max_length=155, null=False)
     created_at = models.DateTimeField(db_index=True, default=timezone.now, null=False)
     last_login_at = models.DateTimeField(db_index=True, null=True)
-    language = models.CharField(db_index=True, default='ru', max_length=15)
+    language = models.CharField(db_index=True, default='RU', max_length=15)
     balance = models.IntegerField(db_index=True, default=0, null=False)
     bonus_balance = models.IntegerField(db_index=True, default=0, null=False)
+
+    def __str__(self):
+        return "u%s" % self.id
 
     def update_contact(self, name, type, address, default=False, verified=False, validator=None):
         """
@@ -308,6 +317,9 @@ class PersonalDataPerson(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
+    def __str__(self):
+        return self.fio
+
     def clean(self):
         if not self.fio_lat:
             self.fio_lat = pytils.translit.translify(self.fio, strict=False)
@@ -326,6 +338,9 @@ class PersonalDataEntrepreneur(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
+    def __str__(self):
+        return "%s (%s)" % (self.fio, self.inn_code)
+
     def clean(self):
         if not self.fio_lat:
             self.fio_lat = pytils.translit.translify(self.fio)
@@ -336,9 +351,9 @@ class PersonalDataCompany(models.Model):
 
     company_name = models.CharField(max_length=255, db_index=True)
     company_name_lat = models.CharField(blank=True, max_length=255, db_index=True)
-    inn = models.CharField(max_length=55, db_index=True)
-    ogrn = models.CharField(max_length=55, db_index=True, null=True)
-    kpp = models.CharField(max_length=55, db_index=True)
+    inn = models.CharField(max_length=10, db_index=True)
+    ogrn = models.CharField(max_length=13, db_index=True, null=True)
+    kpp = models.CharField(max_length=9, db_index=True)
 
     postal_person = models.CharField(max_length=255, db_index=True)
     postal_address = models.CharField(max_length=255, db_index=True)
@@ -348,8 +363,11 @@ class PersonalDataCompany(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
+    def __str__(self):
+        return self.company_name
+
     def clean(self):
-        if not self.company_name:
+        if not self.company_name_lat:
             self.company_name_lat = pytils.translit.translify(self.company_name)
 
 
@@ -364,6 +382,9 @@ class PersonalDataForeignPerson(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
+    def __str__(self):
+        return self.fio_lat
+
 
 class PersonalDataForeignEntrepreneur(models.Model):
     common_data = models.OneToOneField(PersonalData, primary_key=True)
@@ -377,6 +398,9 @@ class PersonalDataForeignEntrepreneur(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
+    def __str__(self):
+        return "%s (%s)" % (self.fio_lat, self.inn_code)
+
 
 class PersonalDataForeignCompany(models.Model):
     common_data = models.OneToOneField(PersonalData, primary_key=True)
@@ -389,3 +413,6 @@ class PersonalDataForeignCompany(models.Model):
 
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
+
+    def __str__(self):
+        return self.company_name_lat

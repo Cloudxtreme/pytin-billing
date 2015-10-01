@@ -19,3 +19,5 @@ mysql -u root -p -e "flush tables;" mysql
 
 [more info coming soon]
 
+./manage.py runserver 127.0.0.1:34018
+

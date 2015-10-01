@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.test import TestCase
 
-from accounts.models import UserAccount, PersonalDataPerson, PersonalData, PersonalDataEntrepreneur
+from accounts.models import UserAccount, PersonalDataPerson, PersonalData, PersonalDataEntrepreneur, PersonalDataCompany
 
 
 class UserAccountTest(TestCase):
@@ -39,6 +39,31 @@ class UserAccountTest(TestCase):
         except ValidationError, ex:
             self.assertEqual(1, len(ex.messages))
             self.assertEqual('Enter a valid email address.', ex.messages[0])
+
+    def test_manage_personal_company_lat_bug(self):
+        """
+        companyname_lat is not being filled
+        """
+
+        user, created = UserAccount.objects.get_or_create(name='Dmitry')
+
+        # normal transliteration
+        company_data_1_data = dict(
+            postal_index=610001, postal_address='Address Postal 1',
+            phone='+7 495 6680903',
+            email='lkdfds@ldkjfs.com',
+
+            company_name='ООО "Баксэт"',
+            inn='4345115602',
+            ogrn='1234567890123',
+            kpp='123456789',
+
+            postal_person='Дмитрий Шиляев',
+            company_address='2347864 Какой-то адрес компании на планете'
+        )
+        personal_data_1 = user.add_personal_data(PersonalDataCompany, **company_data_1_data)
+
+        self.assertEqual('OOO "Bakset"', personal_data_1.extended.company_name_lat)
 
     def test_manage_personal_strict_bug(self):
         """

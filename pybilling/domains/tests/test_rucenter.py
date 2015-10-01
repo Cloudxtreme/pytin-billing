@@ -3,12 +3,70 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 
-from domains.registrars.rucenter import RucenterRegistrar, RucenterRequest, REQUEST, CONTRACT_TYPE
+from domains.registrars.core import DomainRegistrarConfig
+
+from domains.registrars.rucenter.connector import RucenterRegistrar, RucenterRequest, REQUEST, CONTRACT_TYPE
 
 
 class UserAccountTest(TestCase):
     def _get_test_registrar(self):
-        return RucenterRegistrar(login='370/NIC-REG/adm', password='dogovor', lang='ru')
+        registrar_config = DomainRegistrarConfig('rucenter')
+
+        return registrar_config.get_connector()
+
+    def test_register_domain(self):
+        rucenter = self._get_test_registrar()
+
+        # create Person
+        contract1 = rucenter.create_contract({
+            'contract-type': CONTRACT_TYPE.PERSON,
+            'country': 'RU',
+            'currency-id': 'RUR',
+            'e-mail': 'dfdjkh@gmail.com',
+            'password': 'mWRFW4CTwu9vfiW',
+            'phone': '+7 3287 23746782364',
+            'p-addr': '328746 ываырвпаы а ывоапыорвп аы воарпы ваоыпва ',
+            'passport': 'passport паспорт dsfsdf',
+            'birth-date': '05.09.1989',
+            'person': 'Vassiliy Pupkin',
+            'person-r': 'Hello World Mine',
+        })
+        self.assertTrue(contract1.number.endswith('/NIC-D'))
+
+        # Can't test domain registration with nic.ru test environment (very sad)
+        self.assertRaisesMessage(Exception, 'API ERROR 401: Authorization failed', contract1.domain_register,
+                                 'dfjhdsjkhf.ru')
+
+    def test_contract_delete(self):
+        rucenter = self._get_test_registrar()
+
+        # create Person
+        contract1 = rucenter.create_contract({
+            'contract-type': CONTRACT_TYPE.PERSON,
+            'country': 'RU',
+            'currency-id': 'RUR',
+            'e-mail': 'dfdjkh@gmail.com',
+            'password': 'mWRFW4CTwu9vfiW',
+            'phone': '+7 3287 23746782364',
+            'p-addr': '328746 ываырвпаы а ывоапыорвп аы воарпы ваоыпва ',
+            'passport': 'passport паспорт dsfsdf',
+            'birth-date': '05.09.1989',
+            'person': 'Vassiliy Pupkin',
+            'person-r': 'Hello World Mine',
+        })
+        self.assertTrue(contract1.number.endswith('/NIC-D'))
+
+        query = {
+            'contract-num': contract1.number
+        }
+        contracts = list(rucenter.find_contracts(query))
+        self.assertEqual(1, len(contracts))
+
+        # delete contract
+        contract1.delete()
+
+        contracts = list(rucenter.find_contracts(query))
+        self.assertEqual(0, len(contracts))
 
     def test_contract_create_errors(self):
         rucenter = self._get_test_registrar()
