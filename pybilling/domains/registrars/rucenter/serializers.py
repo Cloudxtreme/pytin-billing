@@ -28,9 +28,9 @@ class RuCenterPersonSerializer(PersonalDataSerializer):
                                   personal_data_instance.extended.postal_address),
 
             'passport': personal_data_instance.extended.passport,
-            'birth-date': personal_data_instance.extended.birth,
-            'person': personal_data_instance.extended.fio,
-            'person-r': personal_data_instance.extended.fio_lat,
+            'birth-date': personal_data_instance.extended.birth.strftime('%d.%m.%Y'),
+            'person': personal_data_instance.extended.fio_lat,
+            'person-r': personal_data_instance.extended.fio,
         }
 
 
@@ -52,9 +52,9 @@ class RuCenterEntrepreneurSerializer(PersonalDataSerializer):
 
             'code': personal_data_instance.extended.inn_code,
             'passport': personal_data_instance.extended.passport,
-            'birth-date': personal_data_instance.extended.birth,
-            'person': personal_data_instance.extended.fio,
-            'person-r': personal_data_instance.extended.fio_lat,
+            'birth-date': personal_data_instance.extended.birth.strftime('%d.%m.%Y'),
+            'person': personal_data_instance.extended.fio_lat,
+            'person-r': personal_data_instance.extended.fio,
         }
 
 
@@ -100,7 +100,7 @@ class RuCenterForeignPersonSerializer(PersonalDataSerializer):
             'p-addr': personal_data_instance.extended.postal_address,
 
             'passport': personal_data_instance.extended.passport,
-            'birth-date': personal_data_instance.extended.birth,
+            'birth-date': personal_data_instance.extended.birth.strftime('%d.%m.%Y'),
             'person': personal_data_instance.extended.fio,
         }
 
@@ -122,7 +122,7 @@ class RuCenterForeignEntrepreneurSerializer(PersonalDataSerializer):
 
             'code': personal_data_instance.extended.inn_code,
             'passport': personal_data_instance.extended.passport,
-            'birth-date': personal_data_instance.extended.birth,
+            'birth-date': personal_data_instance.extended.birth.strftime('%d.%m.%Y'),
             'person': personal_data_instance.extended.fio,
         }
 

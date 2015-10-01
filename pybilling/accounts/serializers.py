@@ -50,6 +50,7 @@ class PersonalDataSerializer(serializers.ModelSerializer):
                 if field.is_relation:
                     continue
 
+                # personal_data[field.name] = unicode(getattr(details, field.name))
                 personal_data[field.name] = unicode(getattr(details, field.name))
 
         # fetch common data fields

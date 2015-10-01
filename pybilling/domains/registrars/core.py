@@ -35,6 +35,24 @@ class Contract(object):
         pass
 
 
+# class Contact(object):
+#     def __init__(self, contract, fields):
+#         assert contract
+#         assert fields
+#
+#         self.contract = contract
+#         self.fields = fields
+#
+#     def update(self, data):
+#         pass
+#
+#     def delete(self):
+#         pass
+#
+#     def find_contacts(self, query):
+#         pass
+
+
 class Order(object):
     def __init__(self, contract, order_id):
         assert contract

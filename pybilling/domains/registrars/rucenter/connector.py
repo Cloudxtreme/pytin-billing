@@ -294,7 +294,7 @@ class RucenterRequest(object):
             "Charset": "utf-8"
         }
         data = urlencode({
-            'SimpleRequest': request_body
+            'SimpleRequest': request_body.encode('KOI8-R')
         })
 
         http_response = requests.post(url, data, headers=headers)
@@ -343,7 +343,6 @@ class RucenterContract(Contract):
             order_item.update(data)
 
             # extra logic based on domain type
-            order_item['template'] = 'client_ru'
 
             request.sections.append(ProtocolDataSection('order-item', order_item))
 

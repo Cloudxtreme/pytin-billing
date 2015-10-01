@@ -140,7 +140,7 @@ class UserAccount(models.Model):
     balance = models.IntegerField(db_index=True, default=0, null=False)
     bonus_balance = models.IntegerField(db_index=True, default=0, null=False)
 
-    def __str__(self):
+    def __unicode__(self):
         return "u%s" % self.id
 
     def update_contact(self, name, type, address, default=False, verified=False, validator=None):
@@ -317,7 +317,7 @@ class PersonalDataPerson(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
-    def __str__(self):
+    def __unicode__(self):
         return self.fio
 
     def clean(self):
@@ -338,7 +338,7 @@ class PersonalDataEntrepreneur(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s (%s)" % (self.fio, self.inn_code)
 
     def clean(self):
@@ -363,7 +363,7 @@ class PersonalDataCompany(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
-    def __str__(self):
+    def __unicode__(self):
         return self.company_name
 
     def clean(self):
@@ -382,7 +382,7 @@ class PersonalDataForeignPerson(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
-    def __str__(self):
+    def __unicode__(self):
         return self.fio_lat
 
 
@@ -398,7 +398,7 @@ class PersonalDataForeignEntrepreneur(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s (%s)" % (self.fio_lat, self.inn_code)
 
 
@@ -414,5 +414,5 @@ class PersonalDataForeignCompany(models.Model):
     phone = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_phone])
     email = models.CharField(blank=False, db_index=True, max_length=55, validators=[validate_email])
 
-    def __str__(self):
+    def __unicode__(self):
         return self.company_name_lat

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.contrib import admin
 
 from accounts.models import UserAccount, UserContact, PersonalData, PersonalDataPerson, PersonalDataCompany, \

@@ -23,7 +23,7 @@ class Command(BaseCommand):
         # contract
         contract_cmd_parser = subparsers.add_parser('contract', help='Contract management commands.')
         contract_cmd_parser.add_argument('--list', '-l', help="List available contracts for the account number.")
-        contract_cmd_parser.add_argument('--create', '-c', help="Create contract based on personal data.")
+        contract_cmd_parser.add_argument('--export', '-e', help="Create contract based on personal data.")
         contract_cmd_parser.add_argument('--delete_by_num', help="Delete contract from registrar, by number.")
         self._register_handler('contract', self._handle_contract)
 
@@ -43,7 +43,6 @@ class Command(BaseCommand):
 
         if options['list']:
             user_id = int(options['list'])
-
             for personal_data in PersonalData.objects.filter(account=user_id):
                 for local_contract in RegistrarContract.objects.filter(personal_data=personal_data):
                     print "%s (%s)" % (local_contract.number, local_contract.registrar)
@@ -87,6 +86,7 @@ class Command(BaseCommand):
             known_contracts = RegistrarContract.objects.filter(personal_data=personal_data)
             if len(known_contracts) <= 0:
                 personal_data_serializer = registrar_config.get_serializer(personal_data.type)
+
                 contract = reg_connector.create_contract(personal_data_serializer.serialize(personal_data))
 
                 # track created contracts
@@ -127,7 +127,7 @@ class Command(BaseCommand):
         else:
             subcommand = options['manager_name']
 
-        try:
+            # try:
             self.registered_handlers[subcommand](*args, **options)
-        except Exception, ex:
-            print "Error: %s" % ex.message
+            # except Exception, ex:
+            #     print "Error: %s" % ex
