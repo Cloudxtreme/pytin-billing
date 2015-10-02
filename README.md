@@ -53,11 +53,9 @@ $ pip install virtualenv
 
 Далее всё ставим в окружении.
 $ useradd pybilling
-$ mkdir -p /webapps/pybilling
-$ chown -R pybilling:pybilling /webapps/pybilling
-$ cd /webapps/pybilling
-$ virtualenv /webapps/pybilling
-$ source bin/activate
+$ mkdir -p /apps/pybilling
+$ chown -R pybilling:pybilling /apps/pybilling
+$ cd /apps/pybilling
 
 $ yum -y install mysql mysql-server mysql-devel
 $ chkconfig mysqld on

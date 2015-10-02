@@ -26,6 +26,11 @@ then
     exit 1
 fi
 
+if [ ! -d ${APPROOT}/venv ]; then
+    mkdir -p ${APPROOT}/venv
+    virtualenv ${APPROOT}/venv
+fi
+
 echo "Create directories"
 mkdir -p ${DJANGOROOT}          # ${APPROOT}/djangoproj
 mkdir -p ${APPROOT}/web
@@ -64,6 +69,9 @@ chmod -R u=rwX ${APPROOT}
 chmod -R go-rwxX ${APPROOT}
 chown -R ${USER}:${USER} ${APPROOT}
 
+echo "Switch environment"
+source ${APPROOT}/venv/bin/activate
+
 echo "Update environment"
 pip install -r requirements.txt
 
@@ -73,5 +81,6 @@ cd ${DJANGOROOT}
 python2.7 manage.py makemigrations
 python2.7 manage.py migrate
 
+deactivate
 
 echo "DONE Deployment to ${APPROOT} for ${APPNAME} (${USER})"
