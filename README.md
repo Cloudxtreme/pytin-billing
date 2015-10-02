@@ -33,7 +33,6 @@ yum -y install openssl-devel
 yum -y install ncurses-devel
 yum -y install sqlite-devel
 
-
 cd /opt
 wget --no-check-certificate https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz
 tar xf Python-2.7.6.tar.xz && cd Python-2.7.6
@@ -46,8 +45,7 @@ ln -s /usr/local/bin/pip2.7 /usr/bin/pip
 !!! Поправить shebang в yum на этот #!/usr/bin/python2.6 
 mcedit /usr/bin/yum
 
-
-1. Install PIP: https://pip.pypa.io/en/latest/installing.html
+Install PIP: https://pip.pypa.io/en/latest/installing.html
 $ wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
 
 Ставим virtualenv
@@ -61,6 +59,24 @@ $ cd /webapps/pybilling
 $ virtualenv /webapps/pybilling
 $ source bin/activate
 
+$ yum -y install mysql mysql-server mysql-devel
+$ chkconfig mysqld on
+$ /etc/init.d/mysqld start
+$ /usr/bin/mysql_secure_installation
+
+mysql -u root -p
+> create database pybilling;
+> CREATE USER 'pybilling'@'localhost' IDENTIFIED BY 'password';
+> GRANT ALL PRIVILEGES ON pybilling.* TO 'pybilling'@'localhost';
+> FLUSH PRIVILEGES;
+
+Чтобы тесты выполнялись
+> GRANT CREATE,DELETE ON *.* TO 'pybilling'@'localhost';
+> GRANT ALL PRIVILEGES ON test_pybilling.* TO 'pybilling'@'localhost';
+> FLUSH PRIVILEGES;
+
+Выполнить 
+bash <(curl https://raw.githubusercontent.com/servancho/pytin-billing/master/pybilling/deploy/init.sh)
 
 
 ## REST API

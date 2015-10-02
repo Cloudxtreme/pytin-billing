@@ -4,7 +4,7 @@
 # Create user named ${APPNAME} before running this script.
 #
 # Usage:
-#   bash <(curl https://raw.githubusercontent.com/servancho/pytin/master/pybilling/deploy/init.sh)
+#   bash <(curl https://raw.githubusercontent.com/servancho/pytin-billing/master/pybilling/deploy/init.sh)
 #-------------------------------
 
 APPNAME=pybilling

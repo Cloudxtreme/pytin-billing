@@ -44,10 +44,12 @@ echo "Deploy Django Project"
 cp -r ${SOURCES}/*  ${DJANGOROOT}/
 rm -rf ${DJANGOROOT}/deploy
 
+echo "Deploy production setting.py"
+cp /root/deploy/${APPNAME}/settings.py ${DJANGOROOT}/${APPNAME}/settings.py
+
 echo "Rotate Django SECRET_KEY"
 secret=$(date +%s | md5sum | base64)
-perl -pi -e "s/SECRET_KEY = ''/SECRET_KEY = '${secret}'/g" ${DJANGOROOT}/${APPNAME}/settings.py
-
+perl -pi -e "s/SECRET_KEY = '[^\']*'/SECRET_KEY = '${secret}'/g" ${DJANGOROOT}/${APPNAME}/settings.py
 
 echo "    create backlinks"
 if [ -e ${DJANGOROOT}/logs ]
@@ -60,7 +62,7 @@ ln -s ${APPROOT}/logs ${DJANGOROOT}/
 echo "Setting file righs"
 chmod -R u=rwX ${APPROOT}
 chmod -R go-rwxX ${APPROOT}
-chown -R root:root ${APPROOT}
+chown -R ${USER}:${USER} ${APPROOT}
 
 echo "Update environment"
 pip install -r requirements.txt
