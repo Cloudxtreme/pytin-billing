@@ -11,6 +11,45 @@ def make_password():
     return hashlib.md5(unicode(random.randint(1, 1000000))).hexdigest()[0:29]
 
 
+class RuCenterSerializersFactory(object):
+    def get_serializer_by_data_type(self, personal_data_type):
+        assert personal_data_type
+
+        serializers_map = {
+            'PersonalDataPerson': RuCenterPersonSerializer,
+            'PersonalDataEntrepreneur': RuCenterEntrepreneurSerializer,
+            'PersonalDataCompany': RuCenterCompanySerializer,
+            'PersonalDataForeignPerson': RuCenterForeignPersonSerializer,
+            'PersonalDataForeignEntrepreneur': RuCenterForeignEntrepreneurSerializer,
+            'PersonalDataForeignCompany': RuCenterForeignCompanySerializer,
+        }
+
+        return serializers_map[personal_data_type]
+
+    def get_serializer_by_contract(self, rucenter_contract):
+        """
+        Get the specific serializer for the registrar contract.
+        :param rucenter_contract: Contract from the registrar.
+        :return: Appropriate serializer class.
+        """
+        assert rucenter_contract
+
+        rucenter_contract.load_details()
+
+        if rucenter_contract.contract_type == CONTRACT_TYPE.PERSON:
+            entrepreneur = 'code' in rucenter_contract.fields
+
+            if rucenter_contract.is_resident:
+                return RuCenterEntrepreneurSerializer() if entrepreneur else RuCenterPersonSerializer()
+            else:
+                return RuCenterForeignEntrepreneurSerializer() if entrepreneur else RuCenterEntrepreneurSerializer()
+        else:
+            if rucenter_contract.is_resident:
+                return RuCenterCompanySerializer()
+            else:
+                return RuCenterForeignCompanySerializer()
+
+
 class RuCenterPersonSerializer(PersonalDataSerializer):
     def serialize(self, personal_data_instance):
         assert personal_data_instance

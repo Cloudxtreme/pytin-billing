@@ -69,14 +69,6 @@ DOMAIN_REGISTRARS = {
             'password': 'dogovor',
             'lang': 'ru'
         },
-        'serializers': {
-            'PersonalDataPerson': 'domains.registrars.rucenter.serializers.RuCenterPersonSerializer',
-            'PersonalDataEntrepreneur': 'domains.registrars.rucenter.serializers.RuCenterEntrepreneurSerializer',
-            'PersonalDataCompany': 'domains.registrars.rucenter.serializers.RuCenterCompanySerializer',
-            'PersonalDataForeignPerson': 'domains.registrars.rucenter.serializers.RuCenterForeignPersonSerializer',
-            'PersonalDataForeignEntrepreneur': 'domains.registrars.rucenter.serializers.RuCenterForeignEntrepreneurSerializer',
-            'PersonalDataForeignCompany': 'domains.registrars.rucenter.serializers.RuCenterForeignCompanySerializer',
-        }
     }
 }
 

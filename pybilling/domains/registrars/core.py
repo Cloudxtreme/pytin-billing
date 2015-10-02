@@ -28,6 +28,9 @@ class Contract(object):
     def domain_register(self, domain_name, **data):
         pass
 
+    def domain_prolong(self, domain_name, **data):
+        pass
+
     def find_orders(self, query):
         pass
 
@@ -35,31 +38,35 @@ class Contract(object):
         pass
 
 
-# class Contact(object):
-#     def __init__(self, contract, fields):
-#         assert contract
-#         assert fields
-#
-#         self.contract = contract
-#         self.fields = fields
-#
-#     def update(self, data):
-#         pass
-#
-#     def delete(self):
-#         pass
-#
-#     def find_contacts(self, query):
-#         pass
+class Contact(object):
+    def __init__(self, contract, fields):
+        assert contract
+        assert fields
+
+        self.contract = contract
+        self.fields = fields
+
+    def update(self, data):
+        pass
+
+    def delete(self):
+        pass
+
+    def find_contacts(self, query):
+        pass
 
 
 class Order(object):
-    def __init__(self, contract, order_id):
+    def __init__(self, contract, fields):
         assert contract
-        assert order_id
+        assert fields
+
+        self.fields = fields
 
         self._contract = contract
-        self._order_id = order_id
+
+    def __unicode__(self):
+        return unicode(self.order_id)
 
     def find_services(self, query):
         pass
@@ -69,22 +76,33 @@ class Order(object):
 
     @property
     def order_id(self):
-        return self._order_id
+        pass
 
     @property
     def contract(self):
         return self._contract
 
     @property
-    def status(self):
-        return None
+    def state(self):
+        pass
+
+    @property
+    def order_data(self):
+        return self.fields
 
 
 class Service(object):
-    def __init__(self, order):
-        assert order
+    def __init__(self, contract, fields):
+        assert contract
+        assert fields
 
-        self.order = order
+        self.fields = fields
+
+        self._contract = contract
+
+    @property
+    def contract(self):
+        return self._contract
 
     @property
     def type(self):
@@ -96,7 +114,7 @@ class Service(object):
 
     @property
     def service_data(self):
-        pass
+        return self.fields
 
 
 class DomainRegistrarConfig(object):
@@ -104,18 +122,6 @@ class DomainRegistrarConfig(object):
         assert config_name
 
         self.config = settings.DOMAIN_REGISTRARS[config_name]
-
-    def get_serializer(self, personal_data_type):
-        """
-        Returns serializer for the personal data class.
-        :param personal_data_type:
-        :return:
-        """
-        assert personal_data_type
-
-        serializer_class = loader.get_class(self.config['serializers'][personal_data_type])
-
-        return serializer_class()
 
     def get_connector(self, **kwargs):
         connector_class = loader.get_class(self.config['connector'])

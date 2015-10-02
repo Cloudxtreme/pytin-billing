@@ -1,15 +1,17 @@
 # coding=utf-8
 from __future__ import unicode_literals
-
 import re
+
+import idna
 
 import requests
 from django.utils import timezone
+
 from django.utils.http import urlencode
 
 from django.utils.translation import ugettext_lazy as _
 
-from domains.registrars.core import Registrar, Contract, Order
+from domains.registrars.core import Registrar, Contract, Order, Service
 from pybilling.settings import logger
 
 
@@ -311,19 +313,140 @@ class RucenterRequest(object):
 
 
 class RucenterOrder(Order):
+    @property
+    def order_id(self):
+        return self.fields['order_id']
+
+    @property
+    def state(self):
+        return self.fields['state'] if 'state' in self.fields else None
+
+
+class RucenterService(Service):
     pass
 
 
 class RucenterContract(Contract):
+    def __init__(self, registrar, fields):
+        super(RucenterContract, self).__init__(registrar, fields)
+        self.data_loaded = False
+
     @property
     def number(self):
         return self.fields['contract-num']
 
+    @property
+    def is_resident(self):
+        self.load_details()
+        return True if self.fields['is-resident'].lower() == 'yes' else False
+
+    @property
+    def contract_type(self):
+        self.load_details()
+        return self.fields['contract-type']
+
     def find_orders(self, query):
-        super(RucenterContract, self).find_orders(query)
+        """
+        Searching for the orders.
+        https://www.nic.ru/manager/docs/partners/protocol/requests/orders_search.shtml
+        """
+        request = RucenterRequest(request_type=REQUEST.ORDER,
+                                  operation=OPERATION.SEARCH,
+                                  login=self.registrar.login,
+                                  password=self.registrar.password,
+                                  lang=self.registrar.lang)
+
+        request.add_header('subject-contract', self.number)
+
+        request.sections.append(ProtocolDataSection('order', query))
+
+        while True:
+            response = request.send(RucenterRegistrar.RUCENTER_GATEWAY)
+
+            paging_data = response.get_section('orders-list')
+            item_first = int(paging_data.fields['orders-first'])
+            item_limit = int(paging_data.fields['orders-limit'])
+            item_total = int(paging_data.fields['orders-found'])
+
+            for section in response.sections[1:]:
+                yield RucenterOrder(self, section.fields)
+
+            if (item_first + item_limit) >= item_total:
+                break
+
+            # update paging
+            query['orders-first'] = item_first + item_limit + 1
+            request.sections[0] = ProtocolDataSection('order', query)
 
     def find_services(self, query):
-        super(RucenterContract, self).find_services(query)
+        """
+        Searching for the orders.
+        https://www.nic.ru/manager/docs/partners/protocol/requests/objects_search.shtml
+        """
+        request = RucenterRequest(request_type=REQUEST.SERVICE_OBJECT,
+                                  operation=OPERATION.SEARCH,
+                                  login=self.registrar.login,
+                                  password=self.registrar.password,
+                                  lang=self.registrar.lang)
+
+        request.add_header('subject-contract', self.number)
+
+        request.sections.append(ProtocolDataSection('service-object', query))
+
+        while True:
+            response = request.send(RucenterRegistrar.RUCENTER_GATEWAY)
+
+            paging_data = response.get_section('service-objects-list')
+            item_first = int(paging_data.fields['service-objects-first'])
+            item_limit = int(paging_data.fields['service-objects-limit'])
+            item_total = int(paging_data.fields['service-objects-found'])
+
+            for section in response.sections[1:]:
+                yield RucenterService(self, section.fields)
+
+            if (item_first + item_limit) >= item_total:
+                break
+
+            # update paging
+            query['service-objects-first'] = item_first + item_limit + 1
+            request.sections[0] = ProtocolDataSection('service-object', query)
+
+    def domain_prolong(self, *domain_names, **data):
+        """
+        Prolongate the domain. data['prolong'] is the number of years to prolong the domains.
+        """
+        assert domain_names
+
+        request = RucenterRequest(request_type=REQUEST.ORDER,
+                                  operation=OPERATION.CREATE,
+                                  login=self.registrar.login,
+                                  password=self.registrar.password,
+                                  lang=self.registrar.lang)
+
+        request.add_header('subject-contract', self.number)
+
+        for domain_name in domain_names:
+            order_item = {
+                'service': 'domain',
+                'action': 'prolong',
+                'domain': domain_name
+            }
+            order_item.update(data)
+
+            if 'prolong' not in order_item:
+                order_item['prolong'] = 1
+
+            # extra logic based on domain type
+            if domain_name.lower().endswith('.рф'):
+                order_item = self.handle_rf(order_item)
+
+            request.sections.append(ProtocolDataSection('order-item', order_item))
+
+        response = request.send(RucenterRegistrar.RUCENTER_GATEWAY)
+
+        order_section = response.get_section('order')
+
+        return RucenterOrder(self, order_section.fields)
 
     def domain_register(self, *domain_names, **data):
         assert domain_names
@@ -334,6 +457,8 @@ class RucenterContract(Contract):
                                   password=self.registrar.password,
                                   lang=self.registrar.lang)
 
+        request.add_header('subject-contract', self.number)
+
         for domain_name in domain_names:
             order_item = {
                 'service': 'domain',
@@ -343,6 +468,8 @@ class RucenterContract(Contract):
             order_item.update(data)
 
             # extra logic based on domain type
+            if domain_name.lower().endswith('.рф'):
+                order_item = self.handle_rf(order_item)
 
             request.sections.append(ProtocolDataSection('order-item', order_item))
 
@@ -350,7 +477,7 @@ class RucenterContract(Contract):
 
         order_section = response.get_section('order')
 
-        return RucenterOrder(self, order_id=order_section.fields['order_id'])
+        return RucenterOrder(self, order_section.fields)
 
     def delete(self):
         request = RucenterRequest(request_type=REQUEST.CONTRACT,
@@ -363,7 +490,33 @@ class RucenterContract(Contract):
 
         request.send(RucenterRegistrar.RUCENTER_GATEWAY)
 
-        return True
+        return
+
+    def handle_rf(self, order_item):
+        assert order_item
+
+        order_item['domain'] = idna.encode(order_item['domain'])
+
+        return order_item
+
+    def load_details(self):
+        if self.data_loaded:
+            return True
+
+        request = RucenterRequest(request_type=REQUEST.CONTRACT,
+                                  operation=OPERATION.GET,
+                                  login=self.registrar.login,
+                                  password=self.registrar.password,
+                                  lang=self.registrar.lang)
+
+        request.add_header('subject-contract', self.number)
+
+        response = request.send(RucenterRegistrar.RUCENTER_GATEWAY)
+
+        contract_section = response.get_section('contract')
+
+        self.fields = contract_section.fields
+        self.data_loaded = True
 
 
 class RucenterRegistrar(Registrar):

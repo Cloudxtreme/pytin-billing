@@ -1,11 +1,13 @@
 # coding=utf-8
 from __future__ import unicode_literals
+import random
 
 from django.test import TestCase
 
 from domains.registrars.core import DomainRegistrarConfig
 
-from domains.registrars.rucenter.connector import RucenterRegistrar, RucenterRequest, REQUEST, CONTRACT_TYPE
+from domains.registrars.rucenter.connector import RucenterRegistrar, RucenterRequest, REQUEST, CONTRACT_TYPE, \
+    RucenterContract
 
 
 class UserAccountTest(TestCase):
@@ -14,7 +16,18 @@ class UserAccountTest(TestCase):
 
         return registrar_config.get_connector()
 
-    def test_register_domain(self):
+    def test_domain_handlers(self):
+        rucenter = self._get_test_registrar()
+
+        contract = RucenterContract(rucenter, {})
+
+        data = contract.handle_rf({
+            'domain': 'какой-то-домен.рф'
+        })
+
+        self.assertEqual('xn-----6kcsfufbwlecc6c.xn--p1ai', data['domain'])
+
+    def test_register_domain_and_orders_list(self):
         rucenter = self._get_test_registrar()
 
         # create Person
@@ -33,9 +46,16 @@ class UserAccountTest(TestCase):
         })
         self.assertTrue(contract1.number.endswith('/NIC-D'))
 
-        # Can't test domain registration with nic.ru test environment (very sad)
-        self.assertRaisesMessage(Exception, 'API ERROR 401: Authorization failed', contract1.domain_register,
-                                 'dfjhdsjkhf.ru')
+        domain_name = "test-domain-%s.ru" % random.randint(1, 1000)
+
+        order = contract1.domain_register(domain_name)
+
+        self.assertTrue('order_id' in order.order_data)
+
+        # find orders
+        orders = list(contract1.find_orders({'order_id': order.order_id}))
+        self.assertEqual(1, len(orders))
+        self.assertEqual('waiting', orders[0].state)
 
     def test_contract_delete(self):
         rucenter = self._get_test_registrar()
