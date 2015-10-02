@@ -3,6 +3,66 @@
 Billing system, used internally in justhost.ru. Actually this is the open sourced updated and refactored version.
 Development is in progress.
 
+## Requirements
+
+Python 2.7 or higher
+
+Python modules
+Django==1.8.3
+MySQL-python==1.2.5
+django-filter==0.11.0
+djangorestframework==3.2.3
+idna==2.0
+mysql==0.0.1
+prettytable==0.7.2
+pytils==0.3
+pytz==2015.4
+requests==2.7.0
+wsgiref==0.1.2
+
+
+## Installation on CentOS 6.x
+
+### Install Python 2.7
+
+yum -y groupinstall "Development tools"
+
+yum -y install zlib-devel
+yum -y install bzip2-devel
+yum -y install openssl-devel
+yum -y install ncurses-devel
+yum -y install sqlite-devel
+
+
+cd /opt
+wget --no-check-certificate https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz
+tar xf Python-2.7.6.tar.xz && cd Python-2.7.6
+./configure --prefix=/usr/local
+make && make altinstall
+
+ln -s /usr/local/bin/python2.7 /usr/local/bin/python
+ln -s /usr/local/bin/pip2.7 /usr/bin/pip
+
+!!! Поправить shebang в yum на этот #!/usr/bin/python2.6 
+mcedit /usr/bin/yum
+
+
+1. Install PIP: https://pip.pypa.io/en/latest/installing.html
+$ wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
+
+Ставим virtualenv
+$ pip install virtualenv
+
+Далее всё ставим в окружении.
+$ useradd pybilling
+$ mkdir -p /webapps/pybilling
+$ chown -R pybilling:pybilling /webapps/pybilling
+$ cd /webapps/pybilling
+$ virtualenv /webapps/pybilling
+$ source bin/activate
+
+
+
 ## REST API
 
 GET, POST, PUT, DELETE

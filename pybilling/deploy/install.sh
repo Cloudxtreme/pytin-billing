@@ -44,9 +44,6 @@ echo "Deploy Django Project"
 cp -r ${SOURCES}/*  ${DJANGOROOT}/
 rm -rf ${DJANGOROOT}/deploy
 
-echo "Deploy Django config"
-cp -f ${APPCONFIG}/settings.distr.py ${DJANGOROOT}/${APPNAME}/settings.py
-
 echo "Rotate Django SECRET_KEY"
 secret=$(date +%s | md5sum | base64)
 perl -pi -e "s/SECRET_KEY = ''/SECRET_KEY = '${secret}'/g" ${DJANGOROOT}/${APPNAME}/settings.py
