@@ -17,12 +17,12 @@ class RuCenterSerializersFactory(object):
         assert personal_data_type
 
         serializers_map = {
-            'PersonalDataPerson': RuCenterPersonSerializer,
-            'PersonalDataEntrepreneur': RuCenterEntrepreneurSerializer,
-            'PersonalDataCompany': RuCenterCompanySerializer,
-            'PersonalDataForeignPerson': RuCenterForeignPersonSerializer,
-            'PersonalDataForeignEntrepreneur': RuCenterForeignEntrepreneurSerializer,
-            'PersonalDataForeignCompany': RuCenterForeignCompanySerializer,
+            'PersonalDataPerson': RuCenterPersonSerializer(),
+            'PersonalDataEntrepreneur': RuCenterEntrepreneurSerializer(),
+            'PersonalDataCompany': RuCenterCompanySerializer(),
+            'PersonalDataForeignPerson': RuCenterForeignPersonSerializer(),
+            'PersonalDataForeignEntrepreneur': RuCenterForeignEntrepreneurSerializer(),
+            'PersonalDataForeignCompany': RuCenterForeignCompanySerializer(),
         }
 
         return serializers_map[personal_data_type]
