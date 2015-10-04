@@ -12,7 +12,8 @@ def make_password():
 
 
 class RuCenterSerializersFactory(object):
-    def get_serializer_by_data_type(self, personal_data_type):
+    @staticmethod
+    def get_serializer_by_data_type(personal_data_type):
         assert personal_data_type
 
         serializers_map = {
@@ -26,7 +27,8 @@ class RuCenterSerializersFactory(object):
 
         return serializers_map[personal_data_type]
 
-    def get_serializer_by_contract(self, rucenter_contract):
+    @staticmethod
+    def get_serializer_by_contract(rucenter_contract):
         """
         Get the specific serializer for the registrar contract.
         :param rucenter_contract: Contract from the registrar.

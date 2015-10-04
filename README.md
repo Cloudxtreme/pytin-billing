@@ -51,6 +51,7 @@ $ wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
 
 Ставим virtualenv
 $ pip install virtualenv
+$ pip install requests[security]
 
 Далее всё ставим в окружении.
 $ useradd pybilling
