@@ -71,6 +71,7 @@ chown -R ${USER}:${USER} ${APPROOT}
 
 echo "Switch environment"
 sudo -u ${USER} /bin/bash - << venvpart
+echo "Runnign as" `id`
 source ${APPROOT}/venv/bin/activate
 
 echo "Update environment"
