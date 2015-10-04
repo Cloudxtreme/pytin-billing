@@ -160,7 +160,9 @@ DATABASES = {
         'HOST': 'localhost',
         'NAME': 'pybilling',
         'USER': 'root',
-        'PASSWORD': 'Keynbr777'
+        'PASSWORD': 'Keynbr777',
+        'TEST_CHARSET': "utf8",
+        'CHARSET': "utf8"
     }
 }
 
@@ -170,7 +172,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

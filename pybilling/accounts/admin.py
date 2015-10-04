@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 from accounts.models import UserAccount, UserContact, PersonalData, PersonalDataPerson, PersonalDataCompany, \
-    PersonalDataEntrepreneur
+    PersonalDataEntrepreneur, PersonalDataForeignPerson, PersonalDataForeignCompany, PersonalDataForeignEntrepreneur
 
 
 class UserContactInline(admin.StackedInline):
@@ -16,13 +16,28 @@ class PersonalDataPersonInline(admin.StackedInline):
     extra = 0
 
 
+class PersonalDataEntrepreneurInline(admin.StackedInline):
+    model = PersonalDataEntrepreneur
+    extra = 0
+
+
 class PersonalDataCompanyInline(admin.StackedInline):
     model = PersonalDataCompany
     extra = 0
 
 
-class PersonalDataEntrepreneurInline(admin.StackedInline):
-    model = PersonalDataEntrepreneur
+class PersonalDataForeignPersonInline(admin.StackedInline):
+    model = PersonalDataForeignPerson
+    extra = 0
+
+
+class PersonalDataForeignEntrepreneurInline(admin.StackedInline):
+    model = PersonalDataForeignEntrepreneur
+    extra = 0
+
+
+class PersonalDataForeignCompanyInline(admin.StackedInline):
+    model = PersonalDataForeignCompany
     extra = 0
 
 
@@ -46,7 +61,10 @@ class PersonalDataAdmin(admin.ModelAdmin):
     inlines = [
         PersonalDataPersonInline,
         PersonalDataEntrepreneurInline,
-        PersonalDataCompanyInline
+        PersonalDataCompanyInline,
+        PersonalDataForeignPersonInline,
+        PersonalDataForeignEntrepreneurInline,
+        PersonalDataForeignCompanyInline
     ]
 
     def get_account_id(self, instance):

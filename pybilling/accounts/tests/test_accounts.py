@@ -19,7 +19,7 @@ class UserAccountTest(TestCase):
         self.assertEqual(user.balance, 0)
         self.assertEqual(user.bonus_balance, 0)
         self.assertEqual(user.bonus_balance, 0)
-        self.assertEqual(user.language, 'ru')
+        self.assertEqual(user.language, 'RU')
 
     def test_create_user_contact(self):
         user, created = UserAccount.objects.get_or_create(name='Dmitry')
