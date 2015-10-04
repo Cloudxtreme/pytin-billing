@@ -49,8 +49,6 @@ class Command(BaseCommand):
         domain_cmd_parser.add_argument('--domain', '-d', help="Register domains by contract ID.",
                                        nargs=argparse.ONE_OR_MORE)
 
-        domain_cmd_parser.add_argument('--list', help="List domains for the account number.",
-                                       action='store_true')
         domain_cmd_parser.add_argument('--register', help="Register domains listed in --domain.",
                                        action='store_true')
         domain_cmd_parser.add_argument('--prolong',
@@ -132,13 +130,7 @@ class Command(BaseCommand):
         registrar_config = DomainRegistrarConfig(self.registrar_name)
         reg_connector = registrar_config.get_connector()
 
-        if options['list']:
-            account_number = int(options['account'])
-            for personal_data in PersonalData.objects.filter(account=account_number):
-                for local_contract in RegistrarContract.objects.filter(personal_data=personal_data):
-                    print "%s (%s)" % (local_contract.number, local_contract.registrar)
-
-        elif options['prolong']:
+        if options['prolong']:
             contract_number = options['contract']
             prolong_years = int(options['prolong'])
 
@@ -211,6 +203,10 @@ class Command(BaseCommand):
                     personal_data.id, personal_data.type, personal_data.default, personal_data.verified)
 
                 print '    ', unicode(personal_data.extended)
+
+                for local_contract in RegistrarContract.objects.filter(personal_data=personal_data):
+                    print "        %s (%s)" % (local_contract.number, local_contract.registrar)
+
 
         elif options['export']:
             personal_data_id = int(options['data_id'])
