@@ -84,5 +84,6 @@ python2.7 manage.py migrate
 
 echo "Exit virtual environment"
 deactivate
+exit  # from su pybilling
 
 echo "DONE Deployment to ${APPROOT} for ${APPNAME} (${USER})"
