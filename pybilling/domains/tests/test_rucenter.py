@@ -57,6 +57,10 @@ class UserAccountTest(TestCase):
         self.assertEqual(1, len(orders))
         self.assertEqual('waiting', orders[0].state)
 
+        # find all orders
+        orders = list(contract1.find_orders())
+        self.assertTrue(len(orders) > 1)
+
     def test_contract_delete(self):
         rucenter = self._get_test_registrar()
 

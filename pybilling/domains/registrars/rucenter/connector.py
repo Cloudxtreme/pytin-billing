@@ -22,6 +22,9 @@ def serialize_fields(fields):
     :return:
     """
     serialized = ''
+    if not fields:
+        return serialized
+
     for key in fields:
         for line in fields[key].split('\n'):
             line = line.strip()
