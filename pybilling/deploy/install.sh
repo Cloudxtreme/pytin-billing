@@ -70,7 +70,7 @@ chmod -R go-rwxX ${APPROOT}
 chown -R ${USER}:${USER} ${APPROOT}
 
 echo "Switch environment"
-su pybilling
+sudo -u ${USER} /bin/bash - << venvpart
 source ${APPROOT}/venv/bin/activate
 
 echo "Update environment"
@@ -84,6 +84,6 @@ python2.7 manage.py migrate
 
 echo "Exit virtual environment"
 deactivate
-exit  # from su pybilling
+venvpart
 
 echo "DONE Deployment to ${APPROOT} for ${APPNAME} (${USER})"
