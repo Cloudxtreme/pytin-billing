@@ -474,6 +474,7 @@ class RucenterContract(Contract):
             order_item = {
                 'service': 'domain',
                 'action': 'new',
+                'check-ns': 'OFF',
                 'domain': domain_name
             }
             order_item.update(data)
