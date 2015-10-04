@@ -309,7 +309,7 @@ class AccountsAPITests(APITestCase):
         self.assertEqual('Dmitry', response.data['name'])
         self.assertEqual(0, response.data['balance'])
         self.assertEqual(0, response.data['bonus_balance'])
-        self.assertEqual('ru', response.data['language'])
+        self.assertEqual('RU', response.data['language'])
 
         # UPDATE
         payload = {

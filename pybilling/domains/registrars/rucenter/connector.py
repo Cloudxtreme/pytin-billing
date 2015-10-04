@@ -299,6 +299,9 @@ class RucenterRequest(object):
             'SimpleRequest': request_body.encode('KOI8-R')
         })
 
+        logger.debug("Sending request to: %s", url)
+        logger.debug(request_body)
+
         http_response = requests.post(url, data, headers=headers)
         http_response.encoding = http_response.apparent_encoding
         if http_response.status_code >= 500 or http_response.status_code == 405:

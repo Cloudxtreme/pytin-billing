@@ -32,6 +32,7 @@ yum -y install bzip2-devel
 yum -y install openssl-devel
 yum -y install ncurses-devel
 yum -y install sqlite-devel
+yum -y install libffi-devel libssl-devel
 
 cd /opt
 wget --no-check-certificate https://www.python.org/ftp/python/2.7.6/Python-2.7.6.tar.xz
@@ -61,6 +62,20 @@ $ yum -y install mysql mysql-server mysql-devel
 $ chkconfig mysqld on
 $ /etc/init.d/mysqld start
 $ /usr/bin/mysql_secure_installation
+
+edit /etc/my.cnf
+
+    [mysqld]
+    collation-server = utf8_unicode_ci
+    init-connect='SET NAMES utf8'
+    character-set-server = utf8
+    
+    [client]
+    default-character-set=utf8
+    
+    [mysql]
+    default-character-set=utf8
+
 
 mysql -u root -p
 > create database pybilling;
