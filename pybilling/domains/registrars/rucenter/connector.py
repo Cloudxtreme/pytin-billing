@@ -21,17 +21,22 @@ def serialize_fields(fields):
     :param fields:
     :return:
     """
-    serialized = ''
-    if not fields:
-        return serialized
+    logger.debug("Serialize fields:")
+    logger.debug(fields)
 
+    serialized = ''
     for key in fields:
+        if not fields[key]:
+            continue
+
         for line in fields[key].split('\n'):
             line = line.strip()
             if line == '':
                 continue
 
             serialized += "%s:%s\n" % (key, line)
+
+    logger.debug("Serialized: %s", serialized)
 
     return serialized
 
