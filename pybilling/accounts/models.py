@@ -385,6 +385,9 @@ class PersonalDataForeignPerson(models.Model):
     def __unicode__(self):
         return self.fio_lat
 
+    def clean(self):
+        self.fio_lat = pytils.translit.translify(self.fio_lat)
+
 
 class PersonalDataForeignEntrepreneur(models.Model):
     common_data = models.OneToOneField(PersonalData, primary_key=True)
@@ -401,6 +404,9 @@ class PersonalDataForeignEntrepreneur(models.Model):
     def __unicode__(self):
         return "%s (%s)" % (self.fio_lat, self.inn_code)
 
+    def clean(self):
+        self.fio_lat = pytils.translit.translify(self.fio_lat)
+
 
 class PersonalDataForeignCompany(models.Model):
     common_data = models.OneToOneField(PersonalData, primary_key=True)
@@ -416,3 +422,6 @@ class PersonalDataForeignCompany(models.Model):
 
     def __unicode__(self):
         return self.company_name_lat
+
+    def clean(self):
+        self.company_name_lat = pytils.translit.translify(self.company_name_lat)
