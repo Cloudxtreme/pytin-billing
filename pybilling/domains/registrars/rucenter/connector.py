@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 import re
 
 import idna
-
 import requests
 from django.utils import timezone
-
 from django.utils.http import urlencode
-
 from django.utils.translation import ugettext_lazy as _
 
 from domains.registrars.core import Registrar, Contract, Order, Service

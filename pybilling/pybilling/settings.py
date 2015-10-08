@@ -64,6 +64,7 @@ MIDDLEWARE_CLASSES = (
 DOMAIN_REGISTRARS = {
     'rucenter': {
         'connector': 'domains.registrars.rucenter.connector.RucenterRegistrar',
+        'serializers': 'domains.registrars.rucenter.serializers.RuCenterSerializersFactory',
         'auth': {
             'login': '370/NIC-REG/adm',
             'password': 'dogovor',

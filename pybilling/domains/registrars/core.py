@@ -14,6 +14,9 @@ class Registrar(object):
     def get_balance(self):
         pass
 
+    def get_serializer_factory(self):
+        pass
+
 
 class Contract(object):
     def __init__(self, registrar, fields):
@@ -123,6 +126,10 @@ class DomainRegistrarConfig(object):
 
         self.config = settings.DOMAIN_REGISTRARS[config_name]
 
+    @property
+    def known_registrars(self):
+        return settings.DOMAIN_REGISTRARS.keys()
+
     def get_connector(self, **kwargs):
         connector_class = loader.get_class(self.config['connector'])
 
@@ -130,6 +137,11 @@ class DomainRegistrarConfig(object):
         auth_options.update(kwargs)
 
         return connector_class(**auth_options)
+
+    def get_serializer_factory(self):
+        serializer_class = loader.get_class(self.config['serializers'])
+
+        return serializer_class
 
 
 class PersonalDataSerializer(object):
