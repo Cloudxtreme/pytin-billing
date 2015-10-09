@@ -8,7 +8,8 @@ from domains.models import RegistrarContract
 
 def remove_duplicates(apps, schema_editor):
     for reg_contract in RegistrarContract.objects.all():
-        RegistrarContract.objects.filter(personal_data=reg_contract.personal_data)[1:].delete()
+        for local_contract in RegistrarContract.objects.filter(personal_data=reg_contract.personal_data)[1:]:
+            local_contract.delete()
 
 
 class Migration(migrations.Migration):
