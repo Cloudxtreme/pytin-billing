@@ -55,6 +55,8 @@ class Command(BaseCommand):
 
         domain_cmd_parser.add_argument('--register', help="Register specified domains.",
                                        action='store_true')
+        domain_cmd_parser.add_argument('--search', help="Search specified domains.",
+                                       action='store_true')
         domain_cmd_parser.add_argument('--prolong',
                                        help="Prolongate specified domains. Specify the number of years.")
         self._register_handler('domain', self._handle_domain)
@@ -243,7 +245,18 @@ class Command(BaseCommand):
         registrar_config = DomainRegistrarConfig(self.registrar_name)
         reg_connector = registrar_config.get_connector()
 
-        if options['prolong']:
+        if options['search']:
+            assert options['domain'], _("Specify domains to search (wildcards are supported).")
+
+            for domain_name in options['domain']:
+                domains = list(reg_connector.find_domains({'domain': domain_name}))
+                if len(domains) <= 0:
+                    logger.warning(_("Domain %s is not found in %s." % (domain_name, self.registrar_name)))
+                else:
+                    for reg_domain in domains:
+                        logger.info("%s (%s)" % (reg_domain.name, reg_domain.contract_number))
+
+        elif options['prolong']:
             assert self.contract, _("Specify profile or existing linked contract.")
             assert options['prolong'], _("Specify the prolongation period.")
 

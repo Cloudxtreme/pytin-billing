@@ -136,6 +136,9 @@ class Domain(object):
     def contract_number(self):
         pass
 
+    @property
+    def name(self):
+        pass
 
 class DomainRegistrarConfig(object):
     def __init__(self, config_name):

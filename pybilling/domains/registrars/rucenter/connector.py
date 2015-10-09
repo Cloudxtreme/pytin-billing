@@ -530,8 +530,13 @@ class RucenterContract(Contract):
 
 
 class RucenterDomain(Domain):
+    @property
     def contract_number(self):
         return self.fields['client']
+
+    @property
+    def name(self):
+        return self.fields['domain']
 
 
 class RucenterRegistrar(Registrar):
@@ -646,6 +651,9 @@ class RucenterRegistrar(Registrar):
                                   login=self.login,
                                   password=self.password,
                                   lang=self.lang)
+
+        if 'domain' in query:
+            query['domain'] = query['domain'].upper()
 
         request.sections.append(ProtocolDataSection('domain', query))
 

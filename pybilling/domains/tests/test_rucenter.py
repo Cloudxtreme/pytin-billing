@@ -70,7 +70,9 @@ class UserAccountTest(TestCase):
         domain_name = "test-domain-%s.ru" % random.randint(1, 1000)
 
         order = contract1.domain_register(domain_name,
-                                          nserver='ns1.justhost.ru 46.17.40.100\nns2.justhost.ru 46.17.41.100')
+                                  nserver='ns1.justhost.ru 46.17.40.100\nns2.justhost.ru 46.17.41.100')
+
+        self.assertTrue('order_id' in order.order_data)
 
     def test_register_domain_and_orders_list(self):
         rucenter = self._get_test_registrar()
