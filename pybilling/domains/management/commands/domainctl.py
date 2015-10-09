@@ -254,7 +254,11 @@ class Command(BaseCommand):
                     logger.warning(_("Domain %s is not found in %s." % (domain_name, self.registrar_name)))
                 else:
                     for reg_domain in domains:
-                        logger.info("%s (%s)" % (reg_domain.name, reg_domain.contract_number))
+                        logger.info("%s" % reg_domain.name)
+
+                        if reg_domain.email != '':
+                            for contract in reg_connector.find_contracts({'email': reg_domain.email}):
+                                logger.info("    %s" % contract.number)
 
         elif options['prolong']:
             assert self.contract, _("Specify profile or existing linked contract.")

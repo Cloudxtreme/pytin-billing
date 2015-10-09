@@ -133,11 +133,11 @@ class Domain(object):
         return self._registrar
 
     @property
-    def contract_number(self):
+    def name(self):
         pass
 
     @property
-    def name(self):
+    def email(self):
         pass
 
 class DomainRegistrarConfig(object):

@@ -332,7 +332,13 @@ class RucenterOrder(Order):
 
 
 class RucenterService(Service):
-    pass
+    @property
+    def type(self):
+        return self.service_data['service']
+
+    @property
+    def state(self):
+        return self.service_data['service-state']
 
 
 class RucenterContract(Contract):
@@ -531,12 +537,12 @@ class RucenterContract(Contract):
 
 class RucenterDomain(Domain):
     @property
-    def contract_number(self):
-        return self.fields['client']
-
-    @property
     def name(self):
         return self.fields['domain']
+
+    @property
+    def email(self):
+        return self.fields['email']
 
 
 class RucenterRegistrar(Registrar):
