@@ -574,6 +574,9 @@ class RucenterRegistrar(Registrar):
                                   password=self.password,
                                   lang=self.lang)
 
+        if 'person' in data:
+            data['person'] = re.sub(r'([a-zA-Z -])', r'\1', data['person'])
+
         request.sections.append(ProtocolDataSection('contract', data))
 
         response = request.send(self.RUCENTER_GATEWAY)

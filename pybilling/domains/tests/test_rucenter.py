@@ -16,6 +16,30 @@ class UserAccountTest(TestCase):
 
         return registrar_config.get_connector()
 
+    def test_create_personal_filter_out_bug(self):
+        """
+        Ошибка в поле person. Разрешено использование букв русского, латинского алфавита, пробелов, дефисов и апострофов.
+        error value: Pupkin Igor' Aleksandrovich
+        BUG: https://github.com/servancho/pytin-billing/issues/7
+        """
+        rucenter = self._get_test_registrar()
+
+        contract1 = rucenter.create_contract({
+            'contract-type': CONTRACT_TYPE.PERSON,
+            'country': 'RU',
+            'currency-id': 'RUR',
+            'e-mail': 'dfdjkh@gmail.com',
+            'password': 'mWRFW4CTwu9vfiW',
+            'phone': '+7 3287 23746782364',
+            'p-addr': '328746 ываырвпаы а ывоапыорвп аы воарпы ваоыпва ',
+            'passport': 'passport паспорт dsfsdf',
+            'birth-date': '05.09.1989',
+            'person': "Pupkin Igor Aleksandrovich",
+            'person-r': 'Hello World Mine',
+        })
+
+
+
     def test_domain_handlers(self):
         rucenter = self._get_test_registrar()
 
@@ -58,8 +82,8 @@ class UserAccountTest(TestCase):
         self.assertEqual('waiting', orders[0].state)
 
         # find all orders
-        orders = list(contract1.find_orders())
-        self.assertTrue(len(orders) > 1)
+        orders = list(contract1.find_orders({}))
+        self.assertTrue(len(orders) >= 1)
 
     def test_contract_delete(self):
         rucenter = self._get_test_registrar()

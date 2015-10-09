@@ -321,7 +321,10 @@ class PersonalDataPerson(models.Model):
         return self.fio
 
     def clean(self):
-        self.fio_lat = pytils.translit.translify(self.fio, strict=False)
+        if not self.fio_lat:
+            self.fio_lat = pytils.translit.translify(self.fio, strict=False)
+        else:
+            self.fio_lat = pytils.translit.translify(self.fio_lat, strict=False)
 
 
 class PersonalDataEntrepreneur(models.Model):
@@ -341,7 +344,10 @@ class PersonalDataEntrepreneur(models.Model):
         return "%s (%s)" % (self.fio, self.inn_code)
 
     def clean(self):
-        self.fio_lat = pytils.translit.translify(self.fio)
+        if not self.fio_lat:
+            self.fio_lat = pytils.translit.translify(self.fio, strict=False)
+        else:
+            self.fio_lat = pytils.translit.translify(self.fio_lat, strict=False)
 
 
 class PersonalDataCompany(models.Model):
@@ -365,7 +371,10 @@ class PersonalDataCompany(models.Model):
         return self.company_name
 
     def clean(self):
-        self.company_name_lat = pytils.translit.translify(self.company_name)
+        if not self.company_name_lat:
+            self.company_name_lat = pytils.translit.translify(self.company_name, strict=False)
+        else:
+            self.company_name_lat = pytils.translit.translify(self.company_name_lat, strict=False)
 
 
 class PersonalDataForeignPerson(models.Model):
