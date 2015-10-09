@@ -120,6 +120,23 @@ class Service(object):
         return self.fields
 
 
+class Domain(object):
+    def __init__(self, registrar, fields):
+        assert fields
+
+        self.fields = fields
+
+        self._registrar = registrar
+
+    @property
+    def registrar(self):
+        return self._registrar
+
+    @property
+    def contract_number(self):
+        pass
+
+
 class DomainRegistrarConfig(object):
     def __init__(self, config_name):
         assert config_name

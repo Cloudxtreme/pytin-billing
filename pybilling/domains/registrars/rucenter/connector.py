@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import ugettext_lazy as _
 
-from domains.registrars.core import Registrar, Contract, Order, Service
+from domains.registrars.core import Registrar, Contract, Order, Service, Domain
 from pybilling.settings import logger
 
 
@@ -73,6 +73,7 @@ class REQUEST:
     SERVICE_OBJECT = 'service-object'
     SERVICE = 'service'
     CONTACT = 'contact'
+    DOMAIN = 'domain'
     SERVER = 'server'
 
 
@@ -528,6 +529,11 @@ class RucenterContract(Contract):
         self.data_loaded = True
 
 
+class RucenterDomain(Domain):
+    def contract_number(self):
+        return self.fields['client']
+
+
 class RucenterRegistrar(Registrar):
     """
     Details:
@@ -633,6 +639,19 @@ class RucenterRegistrar(Registrar):
             # update paging
             query['contracts-first'] = item_first + item_limit + 1
             request.sections[0] = ProtocolDataSection('contract', query)
+
+    def find_domains(self, query):
+        request = RucenterRequest(request_type=REQUEST.DOMAIN,
+                                  operation=OPERATION.SEARCH,
+                                  login=self.login,
+                                  password=self.password,
+                                  lang=self.lang)
+
+        request.sections.append(ProtocolDataSection('domain', query))
+
+        response = request.send(self.RUCENTER_GATEWAY)
+        for section in response.sections[1:]:
+            yield RucenterDomain(self, section.fields)
 
     def get_balance(self):
         request = RucenterRequest(request_type=REQUEST.ACCOUNT,

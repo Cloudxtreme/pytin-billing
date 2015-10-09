@@ -5,7 +5,6 @@ import random
 from django.test import TestCase
 
 from domains.registrars.core import DomainRegistrarConfig
-
 from domains.registrars.rucenter.connector import RucenterRegistrar, RucenterRequest, REQUEST, CONTRACT_TYPE, \
     RucenterContract
 
@@ -38,8 +37,6 @@ class UserAccountTest(TestCase):
             'person-r': 'Hello World Mine',
         })
 
-
-
     def test_domain_handlers(self):
         rucenter = self._get_test_registrar()
 
@@ -50,6 +47,30 @@ class UserAccountTest(TestCase):
         })
 
         self.assertEqual('xn-----6kcsfufbwlecc6c.xn--p1ai', data['domain'])
+
+    def test_register_domain_ns_with_ip(self):
+        rucenter = self._get_test_registrar()
+
+        # create Person
+        contract1 = rucenter.create_contract({
+            'contract-type': CONTRACT_TYPE.PERSON,
+            'country': 'RU',
+            'currency-id': 'RUR',
+            'e-mail': 'dfdjkh@gmail.com',
+            'password': 'mWRFW4CTwu9vfiW',
+            'phone': '+7 3287 23746782364',
+            'p-addr': '328746 ываырвпаы а ывоапыорвп аы воарпы ваоыпва ',
+            'passport': 'passport паспорт dsfsdf',
+            'birth-date': '05.09.1989',
+            'person': 'Vassiliy Pupkin',
+            'person-r': 'Hello World Mine',
+        })
+        self.assertTrue(contract1.number.endswith('/NIC-D'))
+
+        domain_name = "test-domain-%s.ru" % random.randint(1, 1000)
+
+        order = contract1.domain_register(domain_name,
+                                          nserver='ns1.justhost.ru 46.17.40.100\nns2.justhost.ru 46.17.41.100')
 
     def test_register_domain_and_orders_list(self):
         rucenter = self._get_test_registrar()
