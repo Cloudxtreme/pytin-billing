@@ -373,6 +373,9 @@ class RucenterContract(Contract):
 
         request.add_header('subject-contract', self.number)
 
+        if 'domain' in query:
+            query['domain'] = query['domain'].upper()
+
         request.sections.append(ProtocolDataSection('order', query))
 
         while True:
@@ -405,6 +408,9 @@ class RucenterContract(Contract):
                                   lang=self.registrar.lang)
 
         request.add_header('subject-contract', self.number)
+
+        if 'domain' in query:
+            query['domain'] = query['domain'].upper()
 
         request.sections.append(ProtocolDataSection('service-object', query))
 
@@ -540,10 +546,6 @@ class RucenterDomain(Domain):
     def name(self):
         return self.fields['domain']
 
-    @property
-    def email(self):
-        return self.fields['email']
-
 
 class RucenterRegistrar(Registrar):
     """
@@ -630,6 +632,9 @@ class RucenterRegistrar(Registrar):
                                   login=self.login,
                                   password=self.password,
                                   lang=self.lang)
+
+        if 'domain' in query:
+            query['domain'] = query['domain'].upper()
 
         request.sections.append(ProtocolDataSection('contract', query))
 

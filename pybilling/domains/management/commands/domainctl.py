@@ -249,16 +249,14 @@ class Command(BaseCommand):
             assert options['domain'], _("Specify domains to search (wildcards are supported).")
 
             for domain_name in options['domain']:
-                domains = list(reg_connector.find_domains({'domain': domain_name}))
-                if len(domains) <= 0:
+                logger.info("Searching %s" % domain_name)
+
+                contracts = list(reg_connector.find_contracts({'domain': domain_name}))
+                if len(contracts) <= 0:
                     logger.warning(_("Domain %s is not found in %s." % (domain_name, self.registrar_name)))
                 else:
-                    for reg_domain in domains:
-                        logger.info("%s" % reg_domain.name)
-
-                        if reg_domain.email != '':
-                            for contract in reg_connector.find_contracts({'email': reg_domain.email}):
-                                logger.info("    %s" % contract.number)
+                    for contract in contracts:
+                        logger.info("    %s" % contract.number)
 
         elif options['prolong']:
             assert self.contract, _("Specify profile or existing linked contract.")
@@ -271,10 +269,10 @@ class Command(BaseCommand):
             if len(contracts) > 0:
                 contract = contracts[0]
 
-                for domain_name in options['domain']:
-                    order = contract.domain_prolong(domain_name, prolong=prolong_years)
+            for domain_name in options['domain']:
+                order = contract.domain_prolong(domain_name, prolong=prolong_years)
 
-                    print "Order created: %s" % order
+            print "Order created: %s" % order
 
         elif options['register']:
             assert self.contract, _("Specify profile or existing linked contract.")
@@ -288,22 +286,24 @@ class Command(BaseCommand):
                 for domain_name in options['domain']:
                     order = contract.domain_register(domain_name, nserver='\n'.join(name_servers))
 
-                    print "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract)
+                print "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract)
             else:
                 print "There is no such contract %s in %s" % (self.contract, self.registrar_name)
 
-    def _register_handler(self, command_name, handler):
-        assert command_name, "command_name must be defined."
-        assert handler, "handler must be defined."
 
-        self.registered_handlers[command_name] = handler
+def _register_handler(self, command_name, handler):
+    assert command_name, "command_name must be defined."
+    assert handler, "handler must be defined."
 
-    def handle(self, *args, **options):
-        subcommand = options['manager_name']
+    self.registered_handlers[command_name] = handler
 
-        self._parse_globals(**options)
 
-        # try:
-        self.registered_handlers[subcommand](*args, **options)
-        # except Exception, ex:
-        #     print "Error: %s" % ex
+def handle(self, *args, **options):
+    subcommand = options['manager_name']
+
+    self._parse_globals(**options)
+
+    # try:
+    self.registered_handlers[subcommand](*args, **options)
+    # except Exception, ex:
+    #     print "Error: %s" % ex
