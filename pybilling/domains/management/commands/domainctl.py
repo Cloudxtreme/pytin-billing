@@ -61,7 +61,6 @@ class Command(BaseCommand):
                                        help="Prolongate specified domains. Specify the number of years.")
         self._register_handler('domain', self._handle_domain)
 
-
         # order
         order_cmd_parser = subparsers.add_parser('order', help='Control orders.')
         order_cmd_parser.add_argument('--state', '-s',
@@ -269,10 +268,9 @@ class Command(BaseCommand):
             if len(contracts) > 0:
                 contract = contracts[0]
 
-            for domain_name in options['domain']:
-                order = contract.domain_prolong(domain_name, prolong=prolong_years)
-
-            print "Order created: %s" % order
+                for domain_name in options['domain']:
+                    order = contract.domain_prolong(domain_name, prolong=prolong_years)
+                    print "Order created: %s" % order
 
         elif options['register']:
             assert self.contract, _("Specify profile or existing linked contract.")
@@ -285,25 +283,22 @@ class Command(BaseCommand):
 
                 for domain_name in options['domain']:
                     order = contract.domain_register(domain_name, nserver='\n'.join(name_servers))
-
-                print "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract)
+                    print "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract)
             else:
                 print "There is no such contract %s in %s" % (self.contract, self.registrar_name)
 
+    def _register_handler(self, command_name, handler):
+        assert command_name, "command_name must be defined."
+        assert handler, "handler must be defined."
 
-def _register_handler(self, command_name, handler):
-    assert command_name, "command_name must be defined."
-    assert handler, "handler must be defined."
+        self.registered_handlers[command_name] = handler
 
-    self.registered_handlers[command_name] = handler
+    def handle(self, *args, **options):
+        subcommand = options['manager_name']
 
+        self._parse_globals(**options)
 
-def handle(self, *args, **options):
-    subcommand = options['manager_name']
-
-    self._parse_globals(**options)
-
-    # try:
-    self.registered_handlers[subcommand](*args, **options)
-    # except Exception, ex:
-    #     print "Error: %s" % ex
+        # try:
+        self.registered_handlers[subcommand](*args, **options)
+        # except Exception, ex:
+        #     print "Error: %s" % ex
