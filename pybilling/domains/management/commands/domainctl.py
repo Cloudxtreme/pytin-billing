@@ -248,7 +248,7 @@ class Command(BaseCommand):
             assert options['domain'], _("Specify domains to search (wildcards are supported).")
 
             for domain_name in options['domain']:
-                logger.info("Searching %s" % domain_name)
+                logger.info("Searching for %s" % domain_name)
 
                 contracts = list(reg_connector.find_contracts({'domain': domain_name}))
                 if len(contracts) <= 0:
