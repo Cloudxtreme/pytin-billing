@@ -449,7 +449,7 @@ class RucenterContract(Contract):
         for domain_name in domain_names:
             order_item = {
                 'service': 'domain',
-                'action': 'prolong',
+                'action': ACTION.PROLONG,
                 'domain': domain_name
             }
             order_item.update(data)
@@ -469,6 +469,11 @@ class RucenterContract(Contract):
 
         return RucenterOrder(self, order_section.fields)
 
+    def domain_update(self, *domain_names, **data):
+        data['action'] = ACTION.UPDATE
+
+        return self.domain_register(*domain_names, **data)
+
     def domain_register(self, *domain_names, **data):
         assert domain_names
 
@@ -483,7 +488,7 @@ class RucenterContract(Contract):
         for domain_name in domain_names:
             order_item = {
                 'service': 'domain',
-                'action': 'new',
+                'action': ACTION.NEW,
                 'check-ns': 'OFF',
                 'domain': domain_name
             }

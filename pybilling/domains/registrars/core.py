@@ -28,10 +28,13 @@ class Contract(object):
     def delete(self):
         pass
 
-    def domain_register(self, domain_name, **data):
+    def domain_register(self, *domain_names, **data):
         pass
 
-    def domain_prolong(self, domain_name, **data):
+    def domain_update(self, *domain_names, **data):
+        pass
+
+    def domain_prolong(self, *domain_names, **data):
         pass
 
     def find_orders(self, query):

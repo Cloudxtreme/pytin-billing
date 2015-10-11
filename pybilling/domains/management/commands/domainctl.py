@@ -55,6 +55,8 @@ class Command(BaseCommand):
 
         domain_cmd_parser.add_argument('--register', help="Register specified domains.",
                                        action='store_true')
+        domain_cmd_parser.add_argument('--update', help="Update data of specified domains.",
+                                       action='store_true')
         domain_cmd_parser.add_argument('--search', help="Search specified domains.",
                                        action='store_true')
         domain_cmd_parser.add_argument('--prolong',
@@ -284,6 +286,21 @@ class Command(BaseCommand):
                 for domain_name in options['domain']:
                     order = contract.domain_register(domain_name, nserver='\n'.join(name_servers))
                     print "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract)
+            else:
+                print "There is no such contract %s in %s" % (self.contract, self.registrar_name)
+
+        elif options['update']:
+            assert self.contract, _("Specify profile or existing linked contract.")
+
+            contracts = list(reg_connector.find_contracts({'contract-num': self.contract}))
+
+            if len(contracts) > 0:
+                contract = contracts[0]
+                name_servers = options['nameserver'].split(',')
+
+                for domain_name in options['domain']:
+                    order = contract.domain_update(domain_name, nserver='\n'.join(name_servers))
+                    print "Order created: %s. Domain %s update in %s." % (order, domain_name, self.contract)
             else:
                 print "There is no such contract %s in %s" % (self.contract, self.registrar_name)
 
