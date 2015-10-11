@@ -432,44 +432,20 @@ class RucenterContract(Contract):
             query['service-objects-first'] = item_first + item_limit + 1
             request.sections[0] = ProtocolDataSection('service-object', query)
 
-    def domain_prolong(self, *domain_names, **data):
+    def domain_prolong(self, prolong_period, *domain_names):
         """
-        Prolongate the domain. data['prolong'] is the number of years to prolong the domains.
+        Prolongate the domain.
+        prolong_period is the number of years to prolong the domains.
         """
         assert domain_names
+        assert prolong_period > 0
 
-        request = RucenterRequest(request_type=REQUEST.ORDER,
-                                  operation=OPERATION.CREATE,
-                                  login=self.registrar.login,
-                                  password=self.registrar.password,
-                                  lang=self.registrar.lang)
-
-        request.add_header('subject-contract', self.number)
-
-        for domain_name in domain_names:
-            order_item = {
-                'service': 'domain',
-                'action': ACTION.PROLONG,
-                'domain': domain_name
-            }
-            order_item.update(data)
-
-            if 'prolong' not in order_item:
-                order_item['prolong'] = 1
-
-            # extra logic based on domain type
-            if domain_name.lower().endswith('.рф'):
-                order_item = self.handle_rf(order_item)
-
-            request.sections.append(ProtocolDataSection('order-item', order_item))
-
-        response = request.send(RucenterRegistrar.RUCENTER_GATEWAY)
-
-        order_section = response.get_section('order')
-
-        return RucenterOrder(self, order_section.fields)
+        return self.domain_register(*domain_names, prolong=prolong_period, action=ACTION.PROLONG)
 
     def domain_update(self, *domain_names, **data):
+        """
+        Update domain data.
+        """
         data['action'] = ACTION.UPDATE
 
         return self.domain_register(*domain_names, **data)

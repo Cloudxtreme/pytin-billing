@@ -34,7 +34,7 @@ class Contract(object):
     def domain_update(self, *domain_names, **data):
         pass
 
-    def domain_prolong(self, *domain_names, **data):
+    def domain_prolong(self, prolong_period, *domain_names):
         pass
 
     def find_orders(self, query):
