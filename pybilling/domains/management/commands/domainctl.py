@@ -271,7 +271,7 @@ class Command(BaseCommand):
                 contract = contracts[0]
 
                 for domain_name in options['domain']:
-                    order = contract.domain_prolong(domain_name, prolong=prolong_years)
+                    order = contract.domain_prolong(prolong_years, domain_name)
                     print "Order created: %s" % order
 
         elif options['register']:

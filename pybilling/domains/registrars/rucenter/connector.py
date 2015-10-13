@@ -26,7 +26,7 @@ def serialize_fields(fields):
         if not fields[key]:
             continue
 
-        for line in fields[key].split('\n'):
+        for line in unicode(fields[key]).split('\n'):
             line = line.strip()
             if line == '':
                 continue
