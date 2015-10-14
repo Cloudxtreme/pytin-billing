@@ -1,0 +1,1 @@
+Manage dedicated servers offers. Interact with CMDB.

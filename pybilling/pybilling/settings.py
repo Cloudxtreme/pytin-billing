@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'accounts',
     'domains',
+    'dedicated',
 )
 
 MIDDLEWARE_CLASSES = (
