@@ -392,7 +392,7 @@ class PersonalDataForeignPerson(models.Model):
         return self.fio_lat
 
     def clean(self):
-        self.fio_lat = pytils.translit.translify(self.fio_lat)
+        self.fio_lat = pytils.translit.translify(self.fio_lat, strict=False)
 
 
 class PersonalDataForeignEntrepreneur(models.Model):
@@ -411,7 +411,7 @@ class PersonalDataForeignEntrepreneur(models.Model):
         return "%s (%s)" % (self.fio_lat, self.inn_code)
 
     def clean(self):
-        self.fio_lat = pytils.translit.translify(self.fio_lat)
+        self.fio_lat = pytils.translit.translify(self.fio_lat, strict=False)
 
 
 class PersonalDataForeignCompany(models.Model):
@@ -430,4 +430,4 @@ class PersonalDataForeignCompany(models.Model):
         return self.company_name_lat
 
     def clean(self):
-        self.company_name_lat = pytils.translit.translify(self.company_name_lat)
+        self.company_name_lat = pytils.translit.translify(self.company_name_lat, strict=False)
