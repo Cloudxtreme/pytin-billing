@@ -44,8 +44,8 @@ class PersonalDataForeignCompanyInline(admin.StackedInline):
 @admin.register(UserAccount)
 class UserAccountAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
-    list_display = ('id', 'name', 'language', 'balance', 'bonus_balance')
-    list_filter = ('language',)
+    list_display = ['id', 'name', 'language', 'balance', 'bonus_balance']
+    list_filter = ['language']
     search_fields = ['id', 'name', 'language']
     inlines = [
         UserContactInline,
@@ -55,8 +55,9 @@ class UserAccountAdmin(admin.ModelAdmin):
 @admin.register(PersonalData)
 class PersonalDataAdmin(admin.ModelAdmin):
     search_fields = ['id', 'account__id', 'account__name', 'type']
-    list_display = ('id', 'get_account_id', 'type', 'default', 'verified')
-    list_filter = ('type', 'default', 'verified')
+    list_display = ['id', 'get_account_id', 'type', 'default', 'verified']
+    list_filter = ['type', 'default', 'verified']
+    raw_id_fields = ['account']
 
     inlines = [
         PersonalDataPersonInline,

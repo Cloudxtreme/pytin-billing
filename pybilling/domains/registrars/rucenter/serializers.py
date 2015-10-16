@@ -142,7 +142,7 @@ class RuCenterForeignPersonSerializer(PersonalDataSerializer):
 
             'passport': personal_data_instance.extended.passport,
             'birth-date': personal_data_instance.extended.birth.strftime('%d.%m.%Y'),
-            'person': personal_data_instance.extended.fio,
+            'person': personal_data_instance.extended.fio_lat
         }
 
 
@@ -164,7 +164,7 @@ class RuCenterForeignEntrepreneurSerializer(PersonalDataSerializer):
             'code': personal_data_instance.extended.inn_code,
             'passport': personal_data_instance.extended.passport,
             'birth-date': personal_data_instance.extended.birth.strftime('%d.%m.%Y'),
-            'person': personal_data_instance.extended.fio,
+            'person': personal_data_instance.extended.fio_lat
         }
 
 
@@ -184,6 +184,5 @@ class RuCenterForeignCompanySerializer(PersonalDataSerializer):
             'code': personal_data_instance.extended.inn,
             'address-r': personal_data_instance.extended.company_address,
             'kpp': personal_data_instance.extended.kpp,
-            'org': personal_data_instance.extended.company_name_lat,
-            'org-r': personal_data_instance.extended.company_name,
+            'org': personal_data_instance.extended.company_name_lat
         }
