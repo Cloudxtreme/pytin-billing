@@ -1,7 +1,9 @@
+# coding=utf-8
 from __future__ import unicode_literals
 
 from argparse import ArgumentParser
 import argparse
+import sys
 
 from django.core.management.base import BaseCommand
 
@@ -44,12 +46,14 @@ class Command(BaseCommand):
                                          action='store_true')
         contract_cmd_parser.add_argument('--link', help="Link registrar contract to the profile.",
                                          action='store_true')
+        contract_cmd_parser.add_argument('--unlink', help="Unlink registrar contract from the profile.",
+                                         action='store_true')
         self._register_handler('contract', self._handle_contract)
 
         # domain
         domain_cmd_parser = subparsers.add_parser('domain', help='Domain management commands.')
         domain_cmd_parser.add_argument('--nameserver', '--ns', help="Comma separated list of nameservers.",
-                                       default='ns1.justhost.ru,ns2.justhost.ru')
+                                       default='ns1.justhost.ru,ns2.justhost.ru'.encode('utf-8'))
         domain_cmd_parser.add_argument('--domain', '-d', help="Register domains by contract ID.",
                                        nargs=argparse.ONE_OR_MORE)
 
@@ -102,6 +106,26 @@ class Command(BaseCommand):
         logger.info("contract = %s" % self.contract)
         logger.info("profile_id = %s" % self.profile_id)
 
+    def _decode_options_to_unicode(self, **options):
+        """
+        Строки из консоли приходят в кодировке sys.stdin.encoding, их нужно преобразовать в unicode
+        для дальнейшего использования.
+        """
+        for option_name in options:
+            if isinstance(options[option_name], str):
+                options[option_name] = options[option_name].decode(sys.stdin.encoding)
+            elif isinstance(options[option_name], list):
+                new_values = []
+                for option_value in options[option_name]:
+                    if isinstance(option_value, str):
+                        new_values.append(option_value.decode(sys.stdin.encoding))
+                    else:
+                        new_values.append(option_value)
+
+                options[option_name] = new_values
+
+        return options
+
     def _handle_contract(self, *args, **options):
         """
         Handle operations with contracts.
@@ -113,12 +137,20 @@ class Command(BaseCommand):
         reg_connector = registrar_config.get_connector()
         serializer_factory = registrar_config.get_serializer_factory()
 
-        if options['link']:
+        if options['unlink']:
+            assert self.contract, _("Specify existing contract.")
+
+            linked_contracts = RegistrarContract.objects.filter(registrar=self.registrar_name, number=self.contract)
+            for linked_contract in linked_contracts:
+                linked_contract.delete()
+                logger.info("    unlinked %s" % linked_contract)
+
+        elif options['link']:
             assert self.contract, _("Specify existing contract.")
 
             linked_contracts = RegistrarContract.objects.filter(registrar=self.registrar_name, number=self.contract)
             if len(linked_contracts) > 0:
-                print "Contract %s already linked to profile %s." % (self.contract, linked_contracts[0].id)
+                logger.info("Contract %s already linked to profile %s." % (self.contract, linked_contracts[0].id))
             else:
                 personal_data = PersonalData.objects.get(pk=self.profile_id)
 
@@ -130,24 +162,28 @@ class Command(BaseCommand):
                     )
                 )
 
-                print "Contract %s linked to profile id %s of account %s" % (self.contract,
-                                                                             personal_data.id,
-                                                                             personal_data.account.id)
-
+                logger.info("Contract %s linked to profile id %s of account %s" % (self.contract,
+                                                                                   personal_data.id,
+                                                                                   personal_data.account.id))
         elif options['list']:
             assert self.user_id, _("Specify user id.")
 
             for personal_data in PersonalData.objects.filter(account=self.user_id):
-                print "%s - %s - %s - %s" % (
+                logger.info("%s - %s - %s - %s" % (
                     personal_data.id,
                     personal_data.type,
                     'default' if personal_data.default else '',
-                    'verified' if personal_data.verified else 'not verified')
+                    'verified' if personal_data.verified else 'not verified'))
 
-                print unicode(personal_data.extended)
+                logger.info(personal_data.extended)
 
+                print_none = True
                 for local_contract in RegistrarContract.objects.filter(personal_data=personal_data):
-                    print "%s (%s)" % (local_contract.number, local_contract.registrar)
+                    logger.info("    %s (%s)" % (local_contract.number, local_contract.registrar))
+                    print_none = False
+
+                if print_none:
+                    logger.info(_("    there is no linked registrar contracts."))
 
         elif options['export']:
             assert self.profile_id, _("Specify profile or contract.")
@@ -170,25 +206,25 @@ class Command(BaseCommand):
                 )
 
                 if created:
-                    print "Created contract: %s" % contract.number
+                    logger.info("Created contract: %s" % contract.number)
                 else:
-                    print "Updated contract: %s" % contract.number
+                    logger.info("Updated contract: %s" % contract.number)
             else:
                 for known_contract in known_contracts:
-                    print "Existing contract: %s" % known_contract.number
+                    logger.info("Existing contract: %s" % known_contract.number)
 
         elif options['delete']:
             assert self.contract, _("Specify profile or existing linked contract.")
 
             try:
                 for contract in reg_connector.find_contracts({'contract-num': self.contract}):
-                    print "Remove contract %s from %s" % (self.contract, self.registrar_name)
+                    logger.info("Remove contract %s from %s" % (self.contract, self.registrar_name))
                     contract.delete()
 
                 local_contracts_count = RegistrarContract.objects.filter(number=self.contract).count()
                 if local_contracts_count > 0:
                     RegistrarContract.objects.filter(number=self.contract).delete()
-                    print "Local contracts removed: %s" % local_contracts_count
+                    logger.info("Local contracts removed: %s" % local_contracts_count)
             except Exception, ex:
                 raise ex
 
@@ -210,7 +246,7 @@ class Command(BaseCommand):
                 contract = contracts[0]
 
                 for service in contract.find_services({}):
-                    print service.service_data['service-id'], ' - ', service.service_data['domain']
+                    logger.info(service.service_data['service-id'], ' - ', service.service_data['domain'])
 
     def _handle_order(self, *args, **options):
         """
@@ -234,7 +270,7 @@ class Command(BaseCommand):
                     query['state'] = options['state']
 
                 for order in contract.find_orders(query):
-                    print order.order_data['order_id'], ' - ', order.order_data['order_items']
+                    logger.info(order.order_data['order_id'], ' - ', order.order_data['order_items'])
 
     def _handle_domain(self, *args, **options):
         """
@@ -272,7 +308,7 @@ class Command(BaseCommand):
 
                 for domain_name in options['domain']:
                     order = contract.domain_prolong(prolong_years, domain_name)
-                    print "Order created: %s" % order
+                    logger.info("Order created: %s" % order)
 
         elif options['register']:
             assert self.contract, _("Specify profile or existing linked contract.")
@@ -285,9 +321,10 @@ class Command(BaseCommand):
 
                 for domain_name in options['domain']:
                     order = contract.domain_register(domain_name, nserver='\n'.join(name_servers))
-                    print "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract)
+                    logger.info(
+                        "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract))
             else:
-                print "There is no such contract %s in %s" % (self.contract, self.registrar_name)
+                logger.info("There is no such contract %s in %s" % (self.contract, self.registrar_name))
 
         elif options['update']:
             assert self.contract, _("Specify profile or existing linked contract.")
@@ -300,9 +337,9 @@ class Command(BaseCommand):
 
                 for domain_name in options['domain']:
                     order = contract.domain_update(domain_name, nserver='\n'.join(name_servers))
-                    print "Order created: %s. Domain %s update in %s." % (order, domain_name, self.contract)
+                    logger.info("Order created: %s. Domain %s update in %s." % (order, domain_name, self.contract))
             else:
-                print "There is no such contract %s in %s" % (self.contract, self.registrar_name)
+                logger.info("There is no such contract %s in %s" % (self.contract, self.registrar_name))
 
     def _register_handler(self, command_name, handler):
         assert command_name, "command_name must be defined."
@@ -313,9 +350,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         subcommand = options['manager_name']
 
-        self._parse_globals(**options)
+        decoded_options = self._decode_options_to_unicode(**options)
+
+        self._parse_globals(**decoded_options)
 
         # try:
-        self.registered_handlers[subcommand](*args, **options)
+        self.registered_handlers[subcommand](*args, **decoded_options)
         # except Exception, ex:
         #     print "Error: %s" % ex

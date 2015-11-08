@@ -12,3 +12,6 @@ class RegistrarContract(models.Model):
     created_at = models.DateTimeField(db_index=True, default=timezone.now, null=False)
     registrar = models.CharField(db_index=True, max_length=35)
     number = models.CharField(db_index=True, max_length=15)
+
+    def __unicode__(self):
+        return "%s (%s)" % (self.number, self.registrar)

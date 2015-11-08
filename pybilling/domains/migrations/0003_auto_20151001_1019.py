@@ -6,7 +6,6 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('accounts', '0002_auto_20151001_1019'),
         ('domains', '0002_auto_20150915_0926'),

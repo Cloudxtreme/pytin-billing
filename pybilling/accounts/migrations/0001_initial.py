@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
 import re
+
+from django.db import models, migrations
 import django.utils.timezone
 import django.core.validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
     ]
 
@@ -59,8 +59,11 @@ class Migration(migrations.Migration):
                 ('postal_address', models.CharField(max_length=255, db_index=True)),
                 ('postal_index', models.CharField(max_length=35, db_index=True)),
                 ('company_address', models.CharField(max_length=255, db_index=True)),
-                ('phone', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'), 'Phone format is +#[#] ### #######', 'invalid')])),
-                ('email', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
+                ('phone', models.CharField(db_index=True, max_length=55, validators=[
+                    django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'),
+                                                          'Phone format is +#[#] ### #######', 'invalid')])),
+                ('email',
+                 models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
             ],
         ),
         migrations.CreateModel(
@@ -74,8 +77,11 @@ class Migration(migrations.Migration):
                 ('birth', models.DateTimeField(db_index=True)),
                 ('postal_address', models.CharField(max_length=255, db_index=True)),
                 ('postal_index', models.CharField(max_length=35, db_index=True)),
-                ('phone', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'), 'Phone format is +#[#] ### #######', 'invalid')])),
-                ('email', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
+                ('phone', models.CharField(db_index=True, max_length=55, validators=[
+                    django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'),
+                                                          'Phone format is +#[#] ### #######', 'invalid')])),
+                ('email',
+                 models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
             ],
         ),
         migrations.CreateModel(
@@ -86,8 +92,11 @@ class Migration(migrations.Migration):
                 ('company_name_lat', models.CharField(max_length=255, db_index=True)),
                 ('postal_address', models.CharField(max_length=255)),
                 ('company_address', models.CharField(max_length=255)),
-                ('phone', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'), 'Phone format is +#[#] ### #######', 'invalid')])),
-                ('email', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
+                ('phone', models.CharField(db_index=True, max_length=55, validators=[
+                    django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'),
+                                                          'Phone format is +#[#] ### #######', 'invalid')])),
+                ('email',
+                 models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
             ],
         ),
         migrations.CreateModel(
@@ -100,8 +109,11 @@ class Migration(migrations.Migration):
                 ('inn_code', models.CharField(max_length=55, db_index=True)),
                 ('birth', models.DateTimeField(db_index=True)),
                 ('postal_address', models.CharField(max_length=255, db_index=True)),
-                ('phone', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'), 'Phone format is +#[#] ### #######', 'invalid')])),
-                ('email', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
+                ('phone', models.CharField(db_index=True, max_length=55, validators=[
+                    django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'),
+                                                          'Phone format is +#[#] ### #######', 'invalid')])),
+                ('email',
+                 models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
             ],
         ),
         migrations.CreateModel(
@@ -113,8 +125,11 @@ class Migration(migrations.Migration):
                 ('passport', models.CharField(max_length=255, db_index=True)),
                 ('birth', models.DateTimeField(db_index=True)),
                 ('postal_address', models.CharField(max_length=255, db_index=True)),
-                ('phone', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'), 'Phone format is +#[#] ### #######', 'invalid')])),
-                ('email', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
+                ('phone', models.CharField(db_index=True, max_length=55, validators=[
+                    django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'),
+                                                          'Phone format is +#[#] ### #######', 'invalid')])),
+                ('email',
+                 models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
             ],
         ),
         migrations.CreateModel(
@@ -127,8 +142,11 @@ class Migration(migrations.Migration):
                 ('birth', models.DateTimeField(db_index=True)),
                 ('postal_address', models.CharField(max_length=255, db_index=True)),
                 ('postal_index', models.CharField(max_length=35, db_index=True)),
-                ('phone', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'), 'Phone format is +#[#] ### #######', 'invalid')])),
-                ('email', models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
+                ('phone', models.CharField(db_index=True, max_length=55, validators=[
+                    django.core.validators.RegexValidator(re.compile('^\\+\\d+\\s+\\d{3}\\s+\\d+\\Z'),
+                                                          'Phone format is +#[#] ### #######', 'invalid')])),
+                ('email',
+                 models.CharField(db_index=True, max_length=55, validators=[django.core.validators.EmailValidator()])),
             ],
         ),
         migrations.AddField(

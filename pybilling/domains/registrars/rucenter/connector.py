@@ -498,7 +498,10 @@ class RucenterContract(Contract):
     def handle_rf(self, order_item):
         assert order_item
 
+        original_domain = order_item['domain']
         order_item['domain'] = idna.encode(order_item['domain'])
+
+        logger.info("IDNA convert: %s -> %s" % (original_domain, order_item['domain']))
 
         return order_item
 
