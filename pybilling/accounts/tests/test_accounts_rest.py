@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from rest_framework.test import APITestCase
 
-from accounts.models import UserAccount, PersonalDataPerson, PersonalDataEntrepreneur, PersonalData
+from accounts.models import UserAccount, PersonalDataPerson, PersonalDataEntrepreneur, PersonalData, UserContact
 
 
 class AccountsAPITests(APITestCase):
@@ -209,8 +209,11 @@ class AccountsAPITests(APITestCase):
         }
         response = self.client.post('/v1/contacts/', payload, format='json')
 
+        users = UserContact.objects.filter().order_by('-id')
+        desired_contact_id = users[0].id
+
         self.assertEqual(201, response.status_code)
-        self.assertEqual(1, response.data['id'])
+        self.assertEqual(desired_contact_id, response.data['id'])
         self.assertEqual('home', response.data['name'])
         self.assertEqual('email', response.data['type'])
         self.assertEqual('dmitry@shyliaev.com', response.data['address'])
@@ -224,8 +227,11 @@ class AccountsAPITests(APITestCase):
         }
         response = self.client.patch('/v1/contacts/%s/' % response.data['id'], payload, format='json')
 
+        users = UserContact.objects.filter().order_by('-id')
+        desired_contact_id = users[0].id
+
         self.assertEqual(200, response.status_code)
-        self.assertEqual(1, response.data['id'])
+        self.assertEqual(desired_contact_id, response.data['id'])
         self.assertEqual('work', response.data['name'])
         self.assertEqual('email', response.data['type'])
         self.assertEqual('bxtgroup@gmail.com', response.data['address'])
@@ -235,7 +241,6 @@ class AccountsAPITests(APITestCase):
         response = self.client.get('/v1/contacts/%s/' % response.data['id'], format='json')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual(1, response.data['id'])
         self.assertEqual('work', response.data['name'])
         self.assertEqual('email', response.data['type'])
         self.assertEqual('bxtgroup@gmail.com', response.data['address'])
@@ -305,7 +310,10 @@ class AccountsAPITests(APITestCase):
 
         self.assertEqual(201, response.status_code)
 
-        self.assertEqual(1, response.data['id'])
+        users = UserAccount.objects.filter().order_by('-id')
+        desired_user_id = users[0].id
+
+        self.assertEqual(desired_user_id, response.data['id'])
         self.assertEqual('Dmitry', response.data['name'])
         self.assertEqual(0, response.data['balance'])
         self.assertEqual(0, response.data['bonus_balance'])
@@ -323,7 +331,10 @@ class AccountsAPITests(APITestCase):
 
         self.assertEqual(200, response.status_code)
 
-        self.assertEqual(1, response.data['id'])
+        users = UserAccount.objects.filter().order_by('-id')
+        desired_user_id = users[0].id
+
+        self.assertEqual(desired_user_id, response.data['id'])
         self.assertEqual('Dmitry Shilyaev', response.data['name'])
         self.assertEqual(0, response.data['balance'])  # not modified
         self.assertEqual(0, response.data['bonus_balance'])  # not modified
@@ -334,7 +345,6 @@ class AccountsAPITests(APITestCase):
 
         self.assertEqual(200, response.status_code)
 
-        self.assertEqual(1, response.data['id'])
         self.assertEqual('Dmitry Shilyaev', response.data['name'])
         self.assertEqual(0, response.data['balance'])
         self.assertEqual(0, response.data['bonus_balance'])

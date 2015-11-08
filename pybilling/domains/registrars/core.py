@@ -139,6 +139,7 @@ class Domain(object):
     def name(self):
         pass
 
+
 class DomainRegistrarConfig(object):
     def __init__(self, config_name):
         assert config_name

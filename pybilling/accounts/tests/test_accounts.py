@@ -182,6 +182,46 @@ class UserAccountTest(TestCase):
         self.assertEqual(1, len(PersonalDataPerson.objects.all()))
         self.assertEqual(1, len(PersonalDataEntrepreneur.objects.all()))
 
+    def test_create_personal_data(self):
+        """
+        Тестируем процесс создания персональных данных. При возникновении ошибки не должно оставаться
+        объекта PersonalData.
+        :return:
+        """
+        user, created = UserAccount.objects.get_or_create(name='Dmitry')
+
+        PersonalData.objects.all().delete()
+
+        self.assertEqual(0, len(PersonalData.objects.all()))
+
+        personal_data_ok_data = dict(
+            fio="Клиент Имя 3",
+            birth='1983-09-03',
+            postal_index=610003, postal_address='Address Postal 3',
+            phone='+7 495 6680903',
+            passport='8734 238764234 239874',
+            email='sdfjkh@lkdfdsldkjfs3.com',
+            inn_code=398472897492874
+        )
+        user.add_personal_data(PersonalDataEntrepreneur, **personal_data_ok_data)
+        self.assertEqual(1, len(PersonalData.objects.all()))
+
+        try:
+            personal_data_not_ok_data = dict(
+                fio="Клиент Имя 3",
+                birth='1983-09-03',
+                postal_index=610003, postal_address='Address Postal 3',
+                phone='+7 4951 6680903',
+                passport='8734 238764234 239874',
+                email='lkdfdsldkjfs3.com',
+            )
+
+            user.add_personal_data(PersonalDataEntrepreneur, **personal_data_not_ok_data)
+            self.fail("Waiting for ValidationError")
+        except ValidationError:
+            # не должно остаться объекта PersonalData
+            self.assertEqual(1, len(PersonalData.objects.all()))
+
     def test_validate_personal_data(self):
         user, created = UserAccount.objects.get_or_create(name='Dmitry')
 

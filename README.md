@@ -66,16 +66,16 @@ $ /usr/bin/mysql_secure_installation
 
 edit /etc/my.cnf
 
-    [mysqld]
-    collation-server = utf8_unicode_ci
-    init-connect='SET NAMES utf8'
-    character-set-server = utf8
-    
-    [client]
-    default-character-set=utf8
-    
-    [mysql]
-    default-character-set=utf8
+[mysqld]
+collation-server = utf8_unicode_ci
+init-connect='SET NAMES utf8'
+character-set-server = utf8
+
+[client]
+default-character-set=utf8
+
+[mysql]
+default-character-set=utf8
 
 
 mysql -u root -p

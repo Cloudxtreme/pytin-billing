@@ -302,7 +302,7 @@ class RucenterRequest(object):
             "Charset": "utf-8"
         }
         data = urlencode({
-            'SimpleRequest': request_body.encode('KOI8-R')
+            'SimpleRequest': request_body.encode('KOI8-R', errors='ignore')
         })
 
         logger.debug("Sending request to: %s", url)

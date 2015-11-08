@@ -161,8 +161,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'HOST': 'localhost',
         'NAME': 'pybilling',
-        'USER': 'root',
-        'PASSWORD': 'Keynbr777',
+        'USER': 'pybilling',
+        'PASSWORD': 'password',
         'TEST_CHARSET': "utf8",
         'CHARSET': "utf8"
     }

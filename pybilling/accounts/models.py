@@ -186,7 +186,8 @@ class UserAccount(models.Model):
 
     def add_personal_data(self, data_klass, **kwargs):
         """
-        Add personal data of type 'data_klass' to the account.
+        Add personal data of type 'data_klass' to the account. If there is some errors saving
+        extended personal data, then saved only placeholder PersonalData object, without linked extended data.
         :returns Object of type PersonalData with related object of 'data_klass' type.
         """
         assert data_klass
@@ -205,7 +206,6 @@ class UserAccount(models.Model):
         common_data.full_clean()
         common_data.save()
 
-        personal_data = None
         try:
             personal_data, created = data_klass.objects.update_or_create(
                 common_data=common_data,
@@ -215,8 +215,7 @@ class UserAccount(models.Model):
             personal_data.full_clean()
             personal_data.save()
         except Exception:
-            if personal_data:
-                personal_data.delete()
+            common_data.delete()
             raise
 
         return personal_data.common_data

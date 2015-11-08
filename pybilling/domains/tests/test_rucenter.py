@@ -15,6 +15,34 @@ class UserAccountTest(TestCase):
 
         return registrar_config.get_connector()
 
+    def test_contract_create_koir_encoding_bug(self):
+        """
+        Запрос в RU-CENTER отправляется в формате KOI-R. При кодировании некоторых символов может
+        возникать ошибка. Используем request_body.encode('KOI8-R', errors='ignore').
+        :return:
+        """
+        rucenter = self._get_test_registrar()
+
+        # create Company
+        payload = {
+            'contract-type': CONTRACT_TYPE.COMPANY,
+            'country': 'RU',
+            'e-mail': 'dfdjkh@gmail.com',
+            'currency-id': 'RUR',
+            'password': 'mWRFW4CTwu9vfiW',
+            'phone': '+7 3287 23746782364',
+            # проблема бала змечана на знаке №
+            'p-addr': '328746 ываырвпаы а №1 ывоапыорвп аы воарпы ваоыпва',
+            'code': '4345115602',
+            'address-r': '312365 khfsdkfh sdk sdkfh ылвоарыолва',
+            'kpp': '123456789',
+            'org': 'Company name',
+            'org-r': 'Название компании',
+        }
+
+        # проблемы возникнуть не должно
+        rucenter.create_contract(payload)
+
     def test_create_personal_filter_out_bug(self):
         """
         Ошибка в поле person. Разрешено использование букв русского, латинского алфавита, пробелов, дефисов и апострофов.
@@ -70,7 +98,7 @@ class UserAccountTest(TestCase):
         domain_name = "test-domain-%s.ru" % random.randint(1, 1000)
 
         order = contract1.domain_register(domain_name,
-                                  nserver='ns1.justhost.ru 46.17.40.100\nns2.justhost.ru 46.17.41.100')
+                                          nserver='ns1.justhost.ru 46.17.40.100\nns2.justhost.ru 46.17.41.100')
 
         self.assertTrue('order_id' in order.order_data)
 
