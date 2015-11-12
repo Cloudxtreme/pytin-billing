@@ -175,7 +175,7 @@ class Command(BaseCommand):
                     'default' if personal_data.default else '',
                     'verified' if personal_data.verified else 'not verified'))
 
-                logger.info(personal_data.extended)
+                logger.info(unicode(personal_data.extended))
 
                 print_none = True
                 for local_contract in RegistrarContract.objects.filter(personal_data=personal_data):
