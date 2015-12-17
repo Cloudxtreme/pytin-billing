@@ -146,7 +146,7 @@ class RegistrarAPITests(APITestCase):
         payload = {
             'domain': 'dfjslkfjsdlkfj-%s.ru' % random.randint(1, 1000),
             'registrar': self.registrar_name,
-            'account_id': self.user.id
+            'account_id': self.user.id,
         }
 
         response = self.client.post('/v1/domain_orders/', payload, format='json')

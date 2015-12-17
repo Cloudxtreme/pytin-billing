@@ -58,7 +58,7 @@ class DomainOrderSerializer(serializers.Serializer):
         domain = self.validated_data['domain']
         account_id = self.validated_data['account_id']
         registrar = self.validated_data['registrar']
-        dns = self.validated_data.get('dns', ''),
+        dns = self.validated_data.get('dns', '')
 
         logger.info('Begin registrar session: %s, %s, %s' % (domain, account_id, registrar))
 
