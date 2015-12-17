@@ -34,7 +34,7 @@ class DomainOrderSerializer(serializers.Serializer):
 
         return registrar_contract, order
 
-    def register_domain(self, domain, registrar, account_id):
+    def register_domain(self, domain, registrar, account_id, dns_list):
         """
         Register the new domain to account.
         :param domain: Domain to register.
@@ -49,7 +49,7 @@ class DomainOrderSerializer(serializers.Serializer):
         personal_data = RegistrarContract.get_linked_personal_data(account_id, registrar)
         registrar_contract, created = RegistrarContract.get_or_create_contract(personal_data, registrar)
 
-        order = registrar_contract.domain_register(domain)
+        order = registrar_contract.domain_register(domain, nserver='\n'.join(dns_list))
         logger.info("Order created: %s. Domain %s registration for %s." % (order, domain, registrar_contract.number))
 
         return registrar_contract, order
@@ -58,6 +58,7 @@ class DomainOrderSerializer(serializers.Serializer):
         domain = self.validated_data['domain']
         account_id = self.validated_data['account_id']
         registrar = self.validated_data['registrar']
+        dns = self.validated_data.get('dns', ''),
 
         logger.info('Begin registrar session: %s, %s, %s' % (domain, account_id, registrar))
 
@@ -70,7 +71,7 @@ class DomainOrderSerializer(serializers.Serializer):
 
             contract, order = self.prolong_domain(domain, registrar, registrar_contract, account_id)
         else:
-            contract, order = self.register_domain(domain, registrar, account_id)
+            contract, order = self.register_domain(domain, registrar, account_id, dns.split(','))
 
         registrar_balance = reg_connector.get_balance()
 
