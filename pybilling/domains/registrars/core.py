@@ -1,10 +1,13 @@
 # coding=utf-8
 from __future__ import unicode_literals
+
 from pybilling import settings
 from pybilling.lib import loader
 
 
 class Registrar(object):
+    NAME = 'none'
+
     def create_contract(self, data):
         pass
 
@@ -24,6 +27,10 @@ class Contract(object):
 
         self.registrar = registrar
         self.fields = fields
+
+    @property
+    def number(self):
+        return None
 
     def delete(self):
         pass

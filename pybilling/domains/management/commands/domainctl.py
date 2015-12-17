@@ -1,12 +1,11 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-from argparse import ArgumentParser
 import argparse
 import sys
+from argparse import ArgumentParser
 
 from django.core.management.base import BaseCommand
-
 from django.utils.translation import ugettext_lazy as _
 
 from accounts.models import PersonalData
@@ -48,6 +47,10 @@ class Command(BaseCommand):
                                          action='store_true')
         contract_cmd_parser.add_argument('--unlink', help="Unlink registrar contract from the profile.",
                                          action='store_true')
+        contract_cmd_parser.add_argument('--search-by-domain',
+                                         help="Search contract by domain (wildcards are supported).")
+        contract_cmd_parser.add_argument('--search-by-email',
+                                         help="Search contract by email (wildcards are supported).")
         self._register_handler('contract', self._handle_contract)
 
         # domain
@@ -56,12 +59,9 @@ class Command(BaseCommand):
                                        default='ns1.justhost.ru,ns2.justhost.ru'.encode('utf-8'))
         domain_cmd_parser.add_argument('--domain', '-d', help="Register domains by contract ID.",
                                        nargs=argparse.ONE_OR_MORE)
-
         domain_cmd_parser.add_argument('--register', help="Register specified domains.",
                                        action='store_true')
         domain_cmd_parser.add_argument('--update', help="Update data of specified domains.",
-                                       action='store_true')
-        domain_cmd_parser.add_argument('--search', help="Search specified domains.",
                                        action='store_true')
         domain_cmd_parser.add_argument('--prolong',
                                        help="Prolongate specified domains. Specify the number of years.")
@@ -137,7 +137,29 @@ class Command(BaseCommand):
         reg_connector = registrar_config.get_connector()
         serializer_factory = registrar_config.get_serializer_factory()
 
-        if options['unlink']:
+        if options['search_by_domain']:
+            domain_name = options['search_by_domain']
+            logger.info("Searching contract by domain %s" % domain_name)
+
+            contracts = list(reg_connector.find_contracts({'domain': domain_name}))
+            if len(contracts) <= 0:
+                logger.warning(_("Contract is not found by %s in %s." % (domain_name, self.registrar_name)))
+            else:
+                for contract in contracts:
+                    logger.info("    %s" % contract.number)
+
+        elif options['search_by_email']:
+            email = options['search_by_email']
+            logger.info("Searching contract by email %s" % email)
+
+            contracts = list(reg_connector.find_contracts({'e-mail': email}))
+            if len(contracts) <= 0:
+                logger.warning(_("Contract is not found by %s in %s." % (email, self.registrar_name)))
+            else:
+                for contract in contracts:
+                    logger.info("    %s" % contract.number)
+
+        elif options['unlink']:
             assert self.contract, _("Specify existing contract.")
 
             linked_contracts = RegistrarContract.objects.filter(registrar=self.registrar_name, number=self.contract)
@@ -155,11 +177,11 @@ class Command(BaseCommand):
                 personal_data = PersonalData.objects.get(pk=self.profile_id)
 
                 RegistrarContract.objects.update_or_create(
-                    registrar=self.registrar_name,
-                    number=self.contract,
-                    defaults=dict(
-                        personal_data=personal_data
-                    )
+                        registrar=self.registrar_name,
+                        number=self.contract,
+                        defaults=dict(
+                                personal_data=personal_data
+                        )
                 )
 
                 logger.info("Contract %s linked to profile id %s of account %s" % (self.contract,
@@ -193,16 +215,15 @@ class Command(BaseCommand):
             known_contracts = RegistrarContract.objects.filter(personal_data=personal_data)
             if len(known_contracts) <= 0:
                 personal_data_serializer = serializer_factory.get_serializer_by_data_type(personal_data.type)
-
                 contract = reg_connector.create_contract(personal_data_serializer.serialize(personal_data))
 
                 # track created contracts
                 contract, created = RegistrarContract.objects.update_or_create(
-                    registrar=self.registrar_name,
-                    number=contract.number,
-                    defaults=dict(
-                        personal_data=personal_data
-                    )
+                        registrar=self.registrar_name,
+                        number=contract.number,
+                        defaults=dict(
+                                personal_data=personal_data
+                        )
                 )
 
                 if created:
@@ -282,20 +303,7 @@ class Command(BaseCommand):
         registrar_config = DomainRegistrarConfig(self.registrar_name)
         reg_connector = registrar_config.get_connector()
 
-        if options['search']:
-            assert options['domain'], _("Specify domains to search (wildcards are supported).")
-
-            for domain_name in options['domain']:
-                logger.info("Searching for %s" % domain_name)
-
-                contracts = list(reg_connector.find_contracts({'domain': domain_name}))
-                if len(contracts) <= 0:
-                    logger.warning(_("Domain %s is not found in %s." % (domain_name, self.registrar_name)))
-                else:
-                    for contract in contracts:
-                        logger.info("    %s" % contract.number)
-
-        elif options['prolong']:
+        if options['prolong']:
             assert self.contract, _("Specify profile or existing linked contract.")
             assert options['prolong'], _("Specify the prolongation period.")
 
@@ -322,7 +330,7 @@ class Command(BaseCommand):
                 for domain_name in options['domain']:
                     order = contract.domain_register(domain_name, nserver='\n'.join(name_servers))
                     logger.info(
-                        "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract))
+                            "Order created: %s. Domain %s registration on %s." % (order, domain_name, self.contract))
             else:
                 logger.info("There is no such contract %s in %s" % (self.contract, self.registrar_name))
 

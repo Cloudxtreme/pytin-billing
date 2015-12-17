@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from __future__ import unicode_literals
+
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework.authtoken.views import obtain_auth_token
@@ -22,5 +23,6 @@ urlpatterns = [
     url(r'^v1/auth/', obtain_auth_token),
     url(r'^v1/', include('accounts.urls')),
     url(r'^v1/', include('dedicated.urls')),
+    url(r'^v1/', include('domains.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ]

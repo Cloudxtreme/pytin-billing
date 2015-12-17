@@ -1,5 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
+
 import re
 
 import idna
@@ -346,9 +347,17 @@ class RucenterContract(Contract):
         super(RucenterContract, self).__init__(registrar, fields)
         self.data_loaded = False
 
+    def __unicode__(self):
+        return self.number
+
     @property
     def number(self):
         return self.fields['contract-num']
+
+    @property
+    def email(self):
+        self.load_details()
+        return self.fields['e-mail']
 
     @property
     def is_resident(self):
@@ -552,9 +561,11 @@ class RucenterRegistrar(Registrar):
     rate_date:14.09.2007
     """
 
+    NAME = 'rucenter'
+
     RUCENTER_GATEWAY = 'https://www.nic.ru/dns/dealer'
 
-    def __init__(self, login, password, lang='ru'):
+    def __init__(self, login, password, lang='en'):
         assert login
         assert password
 

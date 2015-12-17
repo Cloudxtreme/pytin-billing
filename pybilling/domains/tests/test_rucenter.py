@@ -11,7 +11,7 @@ from domains.registrars.rucenter.connector import RucenterRegistrar, RucenterReq
 
 class UserAccountTest(TestCase):
     def _get_test_registrar(self):
-        registrar_config = DomainRegistrarConfig('rucenter')
+        registrar_config = DomainRegistrarConfig(RucenterRegistrar.NAME)
 
         return registrar_config.get_connector()
 
@@ -121,7 +121,7 @@ class UserAccountTest(TestCase):
         })
         self.assertTrue(contract1.number.endswith('/NIC-D'))
 
-        domain_name = "test-domain-%s.ru" % random.randint(1, 1000)
+        domain_name = "test-domain-%s.ru" % random.randint(1, 10000)
 
         order = contract1.domain_register(domain_name)
 
@@ -190,9 +190,9 @@ class UserAccountTest(TestCase):
             rucenter.create_contract(payload)
             self.fail("Exception expected")
         except Exception, ex:
-            self.assertEqual('API ERROR 402: Поле kpp должно состоять из 9 цифр; '
-                             'Ошибка в поле code. Некорректный ИНН',
-                             ex.message)
+            self.assertEqual('API ERROR 402: The "Territory-linked taxpayer number" in kpp must contains 9 digits.; '
+                             'The error in the code. Incorrect TIN',
+                             unicode(ex))
 
     def test_contract_create(self):
         rucenter = self._get_test_registrar()
@@ -260,6 +260,7 @@ class UserAccountTest(TestCase):
 
         self.assertEqual(1, len(contracts))
         self.assertEqual('288198/NIC-D', contracts[0].number)
+        self.assertEqual('admin@google.com', contracts[0].email)
 
     def test_registrar_balance(self):
         rucenter = self._get_test_registrar()

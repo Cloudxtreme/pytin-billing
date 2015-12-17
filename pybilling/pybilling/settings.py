@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 """
-DEV
+!!! USE THIS CONFIG ONLY FOR DEV PURPOSES !!!
 
 Django settings for pybilling project.
 
@@ -21,18 +21,16 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%ik8b0za12w-%(uxt4m#mgfx0ggo9eynfnn13vzqq)=_+m617t'
+SECRET_KEY = 'tesigdevkey'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -69,7 +67,7 @@ DOMAIN_REGISTRARS = {
         'auth': {
             'login': '370/NIC-REG/adm',
             'password': 'dogovor',
-            'lang': 'ru'
+            'lang': 'en'
         },
     }
 }
@@ -95,7 +93,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'simple': {
-            'format': '%(message)s',
+            'format': '%(levelname)s: %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
         'verbose': {
@@ -153,7 +151,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pybilling.wsgi.application'
 
-
 # Database with the localhost development config
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 DATABASES = {
@@ -168,7 +165,6 @@ DATABASES = {
     }
 }
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -181,7 +177,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/

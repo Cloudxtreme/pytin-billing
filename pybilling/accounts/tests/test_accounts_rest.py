@@ -105,6 +105,9 @@ class AccountsAPITests(APITestCase):
 
         response = self.client.post('/v1/pdata/', payload, format='json')
         self.assertEqual(201, response.status_code)
+
+        created_pdata_id = response.data['id']
+
         self.assertEqual('610001', response.data['postal_index'])
         self.assertEqual('Zbignev Bj Zhezinskij', response.data['fio_lat'])
         self.assertEqual('Zbignev Bj Жезинский', response.data['fio'])
@@ -127,6 +130,11 @@ class AccountsAPITests(APITestCase):
         )
         response = self.client.put('/v1/pdata/%s/' % response.data['id'], payload, format='json')
         self.assertEqual(200, response.status_code)
+
+        # check if personal data ID is the same after update
+        updated_pdata_id = response.data['id']
+        self.assertEqual(created_pdata_id, updated_pdata_id)
+
         self.assertEqual('610501', response.data['postal_index'])
         self.assertEqual('Zbignev Bj Zhezinskij', response.data['fio_lat'])
         self.assertEqual('Вассисуалий Петров', response.data['fio'])
@@ -150,6 +158,11 @@ class AccountsAPITests(APITestCase):
         )
         response = self.client.put('/v1/pdata/%s/' % response.data['id'], payload, format='json')
         self.assertEqual(200, response.status_code)
+
+        # is PD type is changed, then PD is recreated.
+        updated_pdata_id2 = response.data['id']
+        self.assertGreater(updated_pdata_id2, created_pdata_id)
+
         self.assertEqual('610501', response.data['postal_index'])
         self.assertEqual('Vassisualij Petrov', response.data['fio_lat'])
         self.assertEqual('Вассисуалий Петров', response.data['fio'])

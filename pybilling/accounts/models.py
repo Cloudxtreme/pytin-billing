@@ -4,18 +4,17 @@ import re
 
 import pytils
 from django.core.exceptions import ValidationError
-from django.db.models import QuerySet
 from django.core.validators import validate_email, RegexValidator
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-
 # Custom model fields validators
 validate_phone = RegexValidator(
-    re.compile(r'^\+\d+\s+\d{3}\s+\d+\Z'),
-    _("Phone format is +#[#] ### #######"),
-    'invalid'
+        re.compile(r'^\+\d+\s+\d{3}\s+\d+\Z'),
+        _("Phone format is +#[#] ### #######"),
+        'invalid'
 )
 
 
@@ -104,7 +103,7 @@ class ManagedQuerySet(QuerySet):
             else:
                 if 'type' not in search_fields:
                     raise ValidationError(
-                        {'type': _("Field 'type' must be defined to be able to search by extended data.")})
+                            {'type': _("Field 'type' must be defined to be able to search by extended data.")})
 
                 lookup_table_name = search_fields['type'].lower()
                 lookup_field = "%s__%s" % (lookup_table_name, field_name_with_lookup)
@@ -172,44 +171,43 @@ class UserAccount(models.Model):
             validator(address)
 
         user_contact, created = UserContact.objects.update_or_create(
-            account=self,
-            address=address,
-            defaults=dict(
-                name=name,
-                type=type,
-                default=default,
-                verified=verified
-            )
+                account=self,
+                address=address,
+                defaults=dict(
+                        name=name,
+                        type=type,
+                        default=default,
+                        verified=verified
+                )
         )
 
         return user_contact
 
-    def add_personal_data(self, data_klass, **kwargs):
+    def add_personal_data(self, data_class, **kwargs):
         """
-        Add personal data of type 'data_klass' to the account. If there is some errors saving
-        extended personal data, then saved only placeholder PersonalData object, without linked extended data.
+        Add personal data of type 'data_klass' to the account.
         :returns Object of type PersonalData with related object of 'data_klass' type.
         """
-        assert data_klass
+        assert data_class
 
         if 'data_class' in kwargs:
             del kwargs['data_class']
 
         kwargs['account'] = self
-        kwargs['type'] = data_klass.__name__
+        kwargs['type'] = data_class.__name__
 
         pdata = get_supported_fields(PersonalData, **kwargs)
         common_data = PersonalData(
-            **pdata
+                **pdata
         )
 
         common_data.full_clean()
         common_data.save()
 
         try:
-            personal_data, created = data_klass.objects.update_or_create(
-                common_data=common_data,
-                defaults=get_supported_fields(data_klass, **kwargs)
+            personal_data, created = data_class.objects.update_or_create(
+                    common_data=common_data,
+                    defaults=get_supported_fields(data_class, **kwargs)
             )
 
             personal_data.full_clean()
