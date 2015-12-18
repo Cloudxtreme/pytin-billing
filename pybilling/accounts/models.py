@@ -245,6 +245,9 @@ class PersonalData(models.Model):
     default = models.BooleanField(null=False, db_index=True, default=False)
     verified = models.BooleanField(null=False, db_index=True, default=False)
 
+    def __unicode__(self):
+        return "%s (%s, %s, %s)" % (self.id, self.type, self.default, self.verified)
+
     def __getattr__(self, attrname):
         """
         Override getters to allow access to extended fields via root PersonalData.
