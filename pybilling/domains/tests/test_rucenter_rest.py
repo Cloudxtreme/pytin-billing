@@ -6,7 +6,7 @@ import random
 from rest_framework.test import APITestCase
 
 from accounts.models import PersonalData, UserAccount, PersonalDataEntrepreneur
-from domains.models import RegistrarContract
+from domains.models import RegistrarContract, RegistrarOrder
 from domains.registrars.core import DomainRegistrarConfig
 from domains.registrars.rucenter.connector import RucenterRegistrar
 
@@ -24,6 +24,8 @@ class RegistrarAPITests(APITestCase):
     def setUp(self):
         PersonalData.objects.all().delete()
         UserAccount.objects.all().delete()
+        RegistrarContract.objects.all().delete()
+
 
         self.registrar_name = RucenterRegistrar.NAME
 
@@ -51,6 +53,7 @@ class RegistrarAPITests(APITestCase):
         pd = self.user.add_personal_data(PersonalDataEntrepreneur, **personal_data_ok_data)
         self.assertEqual(1, len(PersonalData.objects.all()))
         self.assertEqual(0, len(RegistrarContract.objects.all()))
+        self.assertEqual(0, len(RegistrarOrder.objects.all()))
 
         # export personal data to the registrar
         registrar_config = DomainRegistrarConfig(self.registrar_name)
@@ -80,6 +83,7 @@ class RegistrarAPITests(APITestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(RegistrarContract.objects.all()))
+        self.assertEqual(1, len(RegistrarOrder.objects.all()))
 
         linked_contract = RegistrarContract.objects.get(personal_data=pd)
         self.assertEqual(linked_contract.number, response.data['contract'])
@@ -101,6 +105,7 @@ class RegistrarAPITests(APITestCase):
         pd = self.user.add_personal_data(PersonalDataEntrepreneur, **personal_data_ok_data)
         self.assertEqual(1, len(PersonalData.objects.all()))
         self.assertEqual(0, len(RegistrarContract.objects.all()))
+        self.assertEqual(0, len(RegistrarOrder.objects.all()))
 
         # export personal data to the registrar
         registrar_config = DomainRegistrarConfig(self.registrar_name)
@@ -121,6 +126,7 @@ class RegistrarAPITests(APITestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(RegistrarContract.objects.all()))
+        self.assertEqual(1, len(RegistrarOrder.objects.all()))
 
         linked_contract = RegistrarContract.objects.get(personal_data=pd)
         self.assertEqual(linked_contract.number, response.data['contract'])
@@ -142,6 +148,7 @@ class RegistrarAPITests(APITestCase):
         pd = self.user.add_personal_data(PersonalDataEntrepreneur, **personal_data_ok_data)
         self.assertEqual(1, len(PersonalData.objects.all()))
         self.assertEqual(0, len(RegistrarContract.objects.all()))
+        self.assertEqual(0, len(RegistrarOrder.objects.all()))
 
         payload = {
             'domain': 'dfjslkfjsdlkfj-%s.ru' % random.randint(1, 1000),
@@ -153,6 +160,7 @@ class RegistrarAPITests(APITestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(RegistrarContract.objects.all()))
+        self.assertEqual(1, len(RegistrarOrder.objects.all()))
 
         linked_contract = RegistrarContract.objects.get(personal_data=pd)
         self.assertEqual(linked_contract.number, response.data['contract'])
