@@ -12,6 +12,7 @@ class DomainOrderSerializer(serializers.Serializer):
     account_id = serializers.IntegerField()
     domain = serializers.CharField(max_length=200)
     registrar = serializers.CharField(max_length=25)
+    dns = serializers.CharField(max_length=200)
 
     def prolong_domain(self, domain, registrar, native_contract, account_id):
         """
