@@ -530,7 +530,7 @@ class RucenterContract(Contract):
 
         contract_section = response.get_section('contract')
 
-        self.fields = contract_section.fields
+        self.fields.update(contract_section.fields)
         self.data_loaded = True
 
 
