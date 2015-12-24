@@ -1,5 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
+
 import random
 
 from django.test import TestCase
@@ -193,6 +194,36 @@ class UserAccountTest(TestCase):
             self.assertEqual('API ERROR 402: The "Territory-linked taxpayer number" in kpp must contains 9 digits.; '
                              'The error in the code. Incorrect TIN',
                              unicode(ex))
+
+    def test_contract_create_bug_contractnum_key_error(self):
+        """
+        BUG: on load details, contract fields is replaced by fields from GET method. contract-num is missig
+        when GET is performed on contract.
+        :return:
+        """
+        rucenter = self._get_test_registrar()
+
+        # create Person
+        contract1 = rucenter.create_contract({
+            'contract-type': CONTRACT_TYPE.PERSON,
+            'country': 'RU',
+            'currency-id': 'RUR',
+            'e-mail': 'dfdjkh@gmail.com',
+            'password': 'mWRFW4CTwu9vfiW',
+            'phone': '+7 3287 23746782364',
+            'p-addr': '328746 ываырвпаы а ывоапыорвп аы воарпы ваоыпва ',
+            'passport': 'passport паспорт dsfsdf',
+            'birth-date': '05.09.1989',
+            'person': 'Vassiliy Pupkin',
+            'person-r': 'Hello World Mine',
+        })
+
+        self.assertTrue(contract1.number.endswith('/NIC-D'))
+
+        found_contracts = list(rucenter.find_contracts({'contract-num': contract1.number}))
+        self.assertEqual(1, len(found_contracts))
+        self.assertEqual('dfdjkh@gmail.com', found_contracts[0].email)
+        self.assertEqual(contract1.number, found_contracts[0].number)
 
     def test_contract_create(self):
         rucenter = self._get_test_registrar()
