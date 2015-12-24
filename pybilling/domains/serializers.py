@@ -39,7 +39,7 @@ class DomainOrderSerializer(serializers.Serializer):
                                       contract=registrar_contract,
                                       domain=domain,
                                       is_prolong=True,
-                                      prolong_period=prolong_years)
+                                      prolong_years=prolong_years)
 
         return native_contract, order
 
